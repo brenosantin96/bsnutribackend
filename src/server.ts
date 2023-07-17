@@ -3,6 +3,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import apiRoutes from './routes/api';
+import bodyparser from "body-parser";
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ server.use(cors());
 server.use(express.static(path.join(__dirname, '../public')));
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
+server.use(bodyparser.json()) // save this line!
 server.use(apiRoutes);
 
 
