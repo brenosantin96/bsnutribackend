@@ -1,6 +1,11 @@
 import { Request, Response } from 'express';
+import dotenv from 'dotenv';
 import prisma from '../libs/prismaClient';
+import bcrypt from 'bcrypt';
+
 import JWT from 'jsonwebtoken';
+
+dotenv.config();
 
 export const signUp = async (req: Request, res: Response) => {
 
@@ -13,33 +18,38 @@ export const signUp = async (req: Request, res: Response) => {
         if (hasUser) { res.status(500).json({ error: 'Could not register, email already exists.' }); return; }
 
         if (!hasUser) {
-            let newUser = await prisma.user.create({
-                data: {
-                    name,
-                    email,
-                    password,
-                    isAdmin: isAdmin === 'true' ? true : false
-                }
-            })
 
-            const token = JWT.sign({ id: newUser.id, name: newUser.name, email: newUser.email, password: newUser.password },
-                process.env.JWT_SECRET_KEY as string,
-                {
-                    expiresIn: '2h'
-                });
+            let encryptedPassword = await bcrypt.hash(password, 10);
 
-            res.status(201);
-            res.json({ id: newUser.id, token });
-            return;
+            if (encryptedPassword) {
+                let newUser = await prisma.user.create({
+                    data: {
+                        name,
+                        email,
+                        password: encryptedPassword,
+                        isAdmin: isAdmin === 'true' ? true : false
+                    }
+                })
+
+                const token = JWT.sign({ id: newUser.id, name: newUser.name, email: newUser.email, password: newUser.password },
+                    process.env.JWT_SECRET_KEY as string,
+                    {
+                        expiresIn: '2h'
+                    });
+
+                res.status(201);
+                res.json({ id: newUser.id, token });
+                return;
+            }
         }
     }
 };
 
 export const login = async (req: Request, res: Response) => {
 
-    let { email, password } = req.body;
+    let { email, passwordReq } = req.body;
 
-    let user = await prisma.user.findUnique({ where: { email, password } });
+    let user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
         res.json({ error: "User with this email/password does not exist" });
@@ -51,14 +61,27 @@ export const login = async (req: Request, res: Response) => {
         // Remover a senha do objeto user antes de enviar a resposta
         const { password, ...userWithoutPassword } = user;
 
-        const token = JWT.sign({ id: user.id, email: user.email, password: user.password },
-            process.env.JWT_SECRET_KEY as string,
-            {
-                expiresIn: '2h'
-            });
+        const matchedPasswords = await bcrypt.compare(passwordReq, password);
 
-        res.json({ msg: "Logged in successfully", user: userWithoutPassword, status: true, token });
-        return;
+
+        if (!matchedPasswords) {
+            res.json({ msg: "Incorrect email or password" });
+            return;
+        }
+
+
+        if (matchedPasswords) {
+            const token = JWT.sign({ id: user.id, email: user.email, password: user.password },
+                process.env.JWT_SECRET_KEY as string,
+                {
+                    expiresIn: '2h'
+                });
+
+            res.json({ msg: "Logged in successfully", user: userWithoutPassword, status: true, token });
+            return;
+        }
+
+
     }
 
     res.json({ msg: "Unable to log in", status: false });

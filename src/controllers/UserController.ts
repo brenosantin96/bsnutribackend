@@ -3,6 +3,7 @@ import prisma from '../libs/prismaClient';
 
 
 
+
 export const ping = async (req: Request, res: Response) => {
     res.json({ res: 'pong' });
 }
