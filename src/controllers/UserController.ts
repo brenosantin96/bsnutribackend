@@ -23,7 +23,10 @@ export const getUsers = async (req: Request, res: Response) => {
     return users;
 }
 
-export const createUser = async (req: Request, res: Response) => {
+
+
+
+/* export const createUser = async (req: Request, res: Response) => {
 
     const { name, email, password, isAdmin = false } = req.body;
 
@@ -46,4 +49,4 @@ export const createUser = async (req: Request, res: Response) => {
         res.status(500).json({ error: "Error creating user", msg: error });
     }
 
-}
+} */

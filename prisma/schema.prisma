@@ -13,10 +13,37 @@ datasource db {
 //configurar os models nesse arquivo.
 model User {
   id       Int     @id @default(autoincrement())
-  name     String 
+  name     String
   email    String  @unique
   password String
   isAdmin  Boolean @default(false)
 
   @@map("users") //nome da tabela.
+}
+
+model Food {
+  id       Int     @id @default(autoincrement())
+  name     String
+  portion  Int
+  protein  Int
+  calories Int
+  grease   Int
+  salt     Int
+  image    String? @default("")
+
+  meals Meal[]
+}
+
+model Meal {
+  id       Int     @id @default(autoincrement())
+  name     String
+  isMeal   Boolean
+  portion  Int
+  protein  Int
+  calories Int
+  grease   Int
+  salt     Int
+  image    String? @default("")
+
+  foods Food[]
 }
