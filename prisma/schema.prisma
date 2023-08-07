@@ -9,9 +9,9 @@ datasource db {
 
 model User {
   id              Int               @id @default(autoincrement())
-  name            String            @db.VarChar(45)
-  email           String            @unique @db.VarChar(45)
-  password        String            @db.VarChar(45)
+  name            String
+  email           String            @unique
+  password        String
   isAdmin         Int               @db.TinyInt
   users_has_foods users_has_foods[]
   users_has_meals users_has_meals[]
@@ -21,13 +21,13 @@ model User {
 
 model Food {
   id                     Int                      @id @default(autoincrement())
-  name                   String                   @db.VarChar(45)
+  name                   String                   
   portion                Int
   protein                Float                    @db.Float
   calories               Float                    @db.Float
   grease                 Float                    @db.Float
   salt                   Float                    @db.Float
-  image                  String?                  @db.VarChar(45)
+  image                  String?                  
   infonutriday_has_meals infonutriday_has_meals[]
   meals_has_foods        meals_has_foods[]
   users_has_foods        users_has_foods[]
@@ -37,14 +37,14 @@ model Food {
 
 model Meal {
   id                     Int                      @id @default(autoincrement())
-  name                   String                   @db.VarChar(45)
+  name                   String                   
   isMeal                 Int                      @db.TinyInt
   portion                Int
   protein                Float                    @db.Float
   calories               Float                    @db.Float
   grease                 Float                    @db.Float
   salt                   Float                    @db.Float
-  image                  String?                  @db.VarChar(45)
+  image                  String?                  
   infonutriday_has_meals infonutriday_has_meals[]
   meals_has_foods        meals_has_foods[]
   users_has_meals        users_has_meals[]

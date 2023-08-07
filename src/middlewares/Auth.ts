@@ -51,10 +51,10 @@ export const Auth = {
 
                     const userAdmin = await prisma.user.findUnique({ where: { id: parseInt(decoded.id) } });
 
-                    if (userAdmin?.isAdmin === true) {
+                    if (userAdmin?.isAdmin === 1) {
                         success = true;
                     }
-                    if (userAdmin?.isAdmin !== true) {
+                    if (userAdmin?.isAdmin !== 1) {
                         success = false;
                     }
 
