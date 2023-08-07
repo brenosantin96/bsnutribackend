@@ -1,49 +1,110 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "mysql"
-  url      = "mysql://root:qwer@localhost:3306/bsnutri"
+  url      = env("DATABASE_URL")
 }
 
-//configurar os models nesse arquivo.
 model User {
-  id       Int     @id @default(autoincrement())
-  name     String
-  email    String  @unique
-  password String
-  isAdmin  Boolean @default(false)
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(45)
+  email           String            @unique @db.VarChar(45)
+  password        String            @db.VarChar(45)
+  isAdmin         Int               @db.TinyInt
+  users_has_foods users_has_foods[]
+  users_has_meals users_has_meals[]
 
-  @@map("users") //nome da tabela.
+  @@map("users")
 }
 
 model Food {
-  id       Int     @id @default(autoincrement())
-  name     String
-  portion  Int
-  protein  Int
-  calories Int
-  grease   Int
-  salt     Int
-  image    String? @default("")
+  id                     Int                      @id @default(autoincrement())
+  name                   String                   @db.VarChar(45)
+  portion                Int
+  protein                Float                    @db.Float
+  calories               Float                    @db.Float
+  grease                 Float                    @db.Float
+  salt                   Float                    @db.Float
+  image                  String?                  @db.VarChar(45)
+  infonutriday_has_meals infonutriday_has_meals[]
+  meals_has_foods        meals_has_foods[]
+  users_has_foods        users_has_foods[]
 
-  meals Meal[]
+  @@map("foods")
 }
 
 model Meal {
-  id       Int     @id @default(autoincrement())
-  name     String
-  isMeal   Boolean
-  portion  Int
-  protein  Int
-  calories Int
-  grease   Int
-  salt     Int
-  image    String? @default("")
+  id                     Int                      @id @default(autoincrement())
+  name                   String                   @db.VarChar(45)
+  isMeal                 Int                      @db.TinyInt
+  portion                Int
+  protein                Float                    @db.Float
+  calories               Float                    @db.Float
+  grease                 Float                    @db.Float
+  salt                   Float                    @db.Float
+  image                  String?                  @db.VarChar(45)
+  infonutriday_has_meals infonutriday_has_meals[]
+  meals_has_foods        meals_has_foods[]
+  users_has_meals        users_has_meals[]
 
-  foods Food[]
+  @@map("meals")
+}
+
+model infonutriday {
+  id                     String                  @id @db.VarChar(45)
+  date                   DateTime                @db.Date
+  protein                Float                   @db.Float
+  calories               Float                   @db.Float
+  grease                 Float                   @db.Float
+  salt                   Float                   @db.Float
+  finalizedDay           Int                     @db.TinyInt
+  infonutriday_has_meals infonutriday_has_meals?
+}
+
+model infonutriday_has_meals {
+  InfoNutriDay_id String       @id @db.VarChar(45)
+  meals_id        Int?
+  foods_id        Int?
+  infonutriday    infonutriday @relation(fields: [InfoNutriDay_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_InfoNutriDay_has_meals_InfoNutriDay1")
+  foods           Food?        @relation(fields: [foods_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_InfoNutriDay_has_meals_foods1")
+  meals           Meal?        @relation(fields: [meals_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_InfoNutriDay_has_meals_meals1")
+
+  @@index([InfoNutriDay_id], map: "fk_InfoNutriDay_has_meals_InfoNutriDay1_idx")
+  @@index([foods_id], map: "fk_InfoNutriDay_has_meals_foods1_idx")
+  @@index([meals_id], map: "fk_InfoNutriDay_has_meals_meals1_idx")
+}
+
+model meals_has_foods {
+  meals_id Int
+  foods_id Int
+  foods    Food @relation(fields: [foods_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_meals_has_foods_foods1")
+  meals    Meal @relation(fields: [meals_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_meals_has_foods_meals")
+
+  @@id([meals_id, foods_id])
+  @@index([foods_id], map: "fk_meals_has_foods_foods1_idx")
+  @@index([meals_id], map: "fk_meals_has_foods_meals_idx")
+}
+
+model users_has_foods {
+  users_id Int
+  foods_id Int
+  foods    Food @relation(fields: [foods_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_has_foods_foods1")
+  users    User @relation(fields: [users_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_has_foods_users1")
+
+  @@id([users_id, foods_id])
+  @@index([foods_id], map: "fk_users_has_foods_foods1_idx")
+  @@index([users_id], map: "fk_users_has_foods_users1_idx")
+}
+
+model users_has_meals {
+  users_id Int
+  meals_id Int
+  meals    Meal @relation(fields: [meals_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_has_meals_meals1")
+  users    User @relation(fields: [users_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_has_meals_users1")
+
+  @@id([users_id, meals_id])
+  @@index([meals_id], map: "fk_users_has_meals_meals1_idx")
+  @@index([users_id], map: "fk_users_has_meals_users1_idx")
 }

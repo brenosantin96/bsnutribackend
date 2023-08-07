@@ -27,7 +27,7 @@ export const signUp = async (req: Request, res: Response) => {
                         name,
                         email,
                         password: encryptedPassword,
-                        isAdmin: isAdmin === 'true' ? true : false
+                        isAdmin: isAdmin === 1 ? 1 : 0
                     }
                 })
 
