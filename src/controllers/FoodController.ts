@@ -1,7 +1,15 @@
 import { Request, Response } from 'express';
 import prisma from '../libs/prismaClient';
 import { Food } from '../types/Food'
+import { formatToNumber, replaceCommaWithDot } from '../utilities/formatter'
+import JWT, { JwtPayload } from 'jsonwebtoken';
 
+
+interface DecodedToken extends JwtPayload {
+    id: number;
+    email: string;
+    // Adicione outras propriedades que você espera do token
+}
 
 export const getFoods = async (req: Request, res: Response) => {
     let foods = await prisma.food.findMany();
@@ -17,6 +25,7 @@ export const getFoods = async (req: Request, res: Response) => {
     }
 
 }
+
 
 export const getOneFood = async (req: Request, res: Response) => {
 
@@ -34,17 +43,38 @@ export const getOneFood = async (req: Request, res: Response) => {
     }
 
     else {
-        res.status(404).json({ error: `food with ID: ${id} not found` })
+        res.status(404).json({ error: `food with ID: ${id} not found` });
+        return;
     }
 
 }
 
 export const createFood = async (req: Request, res: Response) => {
 
-    const { name, portion, protein, calories, grease, salt, image = "/default.png" } = req.body;
+    let { name, portion, protein, calories, grease, salt, image = "/default.png" } = req.body;
 
+    if (image === undefined || image === "") {
+        image = "/default.png";
+    }
+
+    if (protein !== undefined || protein !== "") {
+        protein = replaceCommaWithDot(protein);
+    }
+
+    if (calories !== undefined || calories !== "") {
+        calories = replaceCommaWithDot(calories);
+    }
+
+    if (grease !== undefined || grease !== "") {
+        grease = replaceCommaWithDot(grease);
+    }
+
+    if (salt !== undefined || salt !== "") {
+        salt = replaceCommaWithDot(salt);
+    }
 
     try {
+
         const newFood = await prisma.food.create({
             data: {
                 name,
@@ -70,7 +100,7 @@ export const createFood = async (req: Request, res: Response) => {
 export const updateFood = async (req: Request, res: Response) => {
 
     const { id } = req.params;
-    const { name, portion, protein, calories, grease, salt, image = "/default.png" } = req.body;
+    let { portion, protein, calories, grease, salt, image = "/default.png" } = req.body;
 
     let food = await prisma.food.findUnique({
         where: {
@@ -102,12 +132,29 @@ export const updateFood = async (req: Request, res: Response) => {
 
         }
 
-        if (name) updatedFood.name = name;
-        if (portion) updatedFood.portion = portion;
-        if (protein) updatedFood.protein = protein;
-        if (calories) updatedFood.calories = calories;
-        if (grease) updatedFood.grease = grease;
-        if (salt) updatedFood.salt = salt;
+
+        if (portion) updatedFood.portion = parseInt(portion);
+
+        if (protein) {
+            protein = replaceCommaWithDot(protein);
+            updatedFood.protein = parseFloat(protein);
+        }
+
+        if (calories) {
+            calories = replaceCommaWithDot(calories);
+            updatedFood.calories = parseFloat(calories);
+        }
+
+        if (grease) {
+            grease = replaceCommaWithDot(grease);
+            updatedFood.grease = parseFloat(grease);
+        }
+
+        if (salt) {
+            salt = replaceCommaWithDot(salt);
+            updatedFood.salt = parseFloat(salt);
+        }
+
         if (image) updatedFood.image = image;
 
 
@@ -133,6 +180,7 @@ export const updateFood = async (req: Request, res: Response) => {
 
         } catch (error) {
             res.status(500).json({ err: error })
+            console.log(error);
             return
         }
 
@@ -153,21 +201,158 @@ export const deleteOneFood = async (req: Request, res: Response) => {
     })
 
     if (food) {
-        await prisma.food.delete({
-            where: {
-                id: food.id
-            }
-        })
-        res.status(200).json({ msg: `Food with ID: ${id} removed with success.` });
-        return;
+        try {
+            await prisma.food.delete({
+                where: {
+                    id: food.id
+                }
+            })
+            res.status(200).json({ msg: `Food with ID: ${id} removed with success.` });
+            return;
+
+        } catch (error) {
+            res.status(500).json(error);
+            return;
+        }
+
     }
 
     else {
-        res.status(404).json({ error: `food with ID: ${id} not found` })
+        res.status(404).json({ error: `food with ID: ${id} not found` });
+        return;
     }
 
 }
 
+
+//CRUD BY USER ID
+
+export const getFoodsByUserId = async (req: Request, res: Response) => {
+
+    // Recupere o token do cabeçalho de autorização
+    const authorizationHeader = req.headers.authorization;
+    if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
+        res.status(401).json({ error: "Unauthorized." });
+        return;
+    }
+
+    const token = authorizationHeader.split(" ")[1]; // Obtém o token sem o "Bearer" //gera um array onde foi feito o split
+
+    // Decodifique o token para obter os dados do usuário
+    try {
+        const decodedToken = JWT.verify(token, process.env.JWT_SECRET_KEY as string) as DecodedToken;
+        // Agora você pode acessar os dados do usuário do token, como decodedToken.id e decodedToken.email
+
+        const user = await prisma.user.findUnique({
+            where: { id: decodedToken.id },
+            include: {
+                users_has_foods: {
+                    include: {
+                        foods: true
+                    }
+                }
+            }
+        });
+
+        console.log("USER: ", user)
+
+        if (!user) {
+            res.status(404).json({ error: "User not found." });
+            return;
+        }
+
+        //map criando array de foods do usuario
+        const userFoods = user.users_has_foods.map(uhf => uhf.foods);
+
+        res.status(200).json(userFoods);
+        return;
+
+    } catch (error) {
+        console.error("Error fetching user's foods:", error);
+        res.status(500).json({ error: "Internal server error." });
+    }
+}
+
+export const createFoodsByUserId = async (req: Request, res: Response) => {
+
+    let { name, portion, protein, calories, grease, salt, image = "/default.png" } = req.body;
+
+    if (image === undefined || image === "") {
+        image = "/default.png";
+    }
+
+    if (protein !== undefined || protein !== "") {
+        protein = replaceCommaWithDot(protein);
+    }
+
+    if (calories !== undefined || calories !== "") {
+        calories = replaceCommaWithDot(calories);
+    }
+
+    if (grease !== undefined || grease !== "") {
+        grease = replaceCommaWithDot(grease);
+    }
+
+    if (salt !== undefined || salt !== "") {
+        salt = replaceCommaWithDot(salt);
+    }
+
+    // Recupere o token do cabeçalho de autorização
+    const authorizationHeader = req.headers.authorization;
+    if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
+        res.status(401).json({ error: "Unauthorized." });
+        return;
+    }
+
+    const token = authorizationHeader.split(" ")[1]; // Obtém o token sem o "Bearer" //gera um array onde foi feito o split
+
+    // Decodifique o token para obter os dados do usuário
+    try {
+        const decodedToken = JWT.verify(token, process.env.JWT_SECRET_KEY as string) as DecodedToken;
+        // Agora você pode acessar os dados do usuário do token, como decodedToken.id e decodedToken.email
+
+        const user = await prisma.user.findUnique({
+            where: { id: decodedToken.id },
+        });
+
+        if (!user) {
+            res.status(404).json({ error: "User not found." });
+            return;
+        }
+
+        const newFood = await prisma.food.create({
+            data: {
+                name,
+                portion: parseInt(portion),
+                protein: parseFloat(protein),
+                calories: parseFloat(calories),
+                grease: parseFloat(grease),
+                salt: parseFloat(salt),
+                image,
+                users_has_foods: {
+                    create: {
+                        users: {
+                            connect: {
+                                id: decodedToken.id
+                            }
+                        }
+                    }
+                }
+            },
+        });
+
+        res.status(200).json({ msg: "Food created with success:", food: newFood });
+        return
+
+    } catch (error) {
+        console.error("Error fetching user's foods:", error);
+        res.status(500).json({ error: "Internal server error." });
+    }
+}
+
+
+
+//ATUALIZAR O FOOD, O FOOD SO PODE SER ATUALIZADO CASO ESSE FOOD COM ESSE DETERMINADO ID SEJA ATRELADO AO USUARIO QUE O CRIOU.
 
 
 
