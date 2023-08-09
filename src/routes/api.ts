@@ -27,11 +27,11 @@ router.put('/api/foods/:id', FoodController.updateFood);
 router.delete('/api/foods/:id', FoodController.deleteOneFood);
 
 //foodsByUsers
-router.get('/api/foodsByUser', Auth.private, FoodController.getFoodsByUserId);
-router.get('/api/foodsByUser/:id', Auth.private, FoodController.getOneFood);
-router.post('/api/foodsByUser', Auth.private, FoodController.createFoodsByUserId);
-router.put('/api/foodsByUser/:id', Auth.private, FoodController.updateFood);
-router.delete('/api/foodsByUser/:id', Auth.private, FoodController.deleteOneFood);
+router.get('/api/foodsByUser', Auth.private, FoodController.getFoodsByUserId); //ok
+router.get('/api/foodsByUser/:id', Auth.private, FoodController.getOneFoodByUserId); //ok
+router.post('/api/foodsByUser', Auth.private, FoodController.createFoodsByUserId); //ok
+router.put('/api/foodsByUser/:id', Auth.private, FoodController.updateFoodByUserId); //ok
+router.delete('/api/foodsByUser/:id', Auth.private, FoodController.deleteOneFoodByUserId); //ok
 
 
 

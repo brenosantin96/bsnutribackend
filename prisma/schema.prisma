@@ -90,7 +90,7 @@ model meals_has_foods {
 model users_has_foods {
   users_id Int
   foods_id Int
-  foods    Food @relation(fields: [foods_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_has_foods_foods1")
+  foods    Food @relation(fields: [foods_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_users_has_foods_foods1")
   users    User @relation(fields: [users_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_has_foods_users1")
 
   @@id([users_id, foods_id])
