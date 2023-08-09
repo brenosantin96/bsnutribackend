@@ -3,6 +3,7 @@ import { Router } from 'express';
 import * as UserController from '../controllers/UserController';
 import * as LoginAndRegisterController from '../controllers/LoginAndRegisterController';
 import * as FoodController from '../controllers/FoodController';
+import * as MealController from '../controllers/MealController';
 
 import { Auth } from '../middlewares/Auth';
 
@@ -32,6 +33,9 @@ router.get('/api/foodsByUser/:id', Auth.private, FoodController.getOneFoodByUser
 router.post('/api/foodsByUser', Auth.private, FoodController.createFoodsByUserId); //ok
 router.put('/api/foodsByUser/:id', Auth.private, FoodController.updateFoodByUserId); //ok
 router.delete('/api/foodsByUser/:id', Auth.private, FoodController.deleteOneFoodByUserId); //ok
+
+//mealsByUser
+router.post('/api/mealsByUser', Auth.private, MealController.createMealByUserId); //ok
 
 
 
