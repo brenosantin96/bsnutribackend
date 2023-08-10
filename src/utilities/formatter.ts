@@ -15,6 +15,8 @@ export const formatToNumber = (textToFormat: any) => {
 //
 
 export const replaceCommaWithDot = (inputString: string): string => {
-    const resultString = inputString.replace(/,/g, ".");
-    return resultString;
+    if (inputString.includes(",")) {
+        return inputString.replace(/,/g, ".");
+    }
+    return inputString;
 }

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../libs/prismaClient';
 import { Food } from '../types/Food'
-import { formatToNumber, replaceCommaWithDot } from '../utilities/formatter'
+import { replaceCommaWithDot } from '../utilities/formatter'
 import JWT, { JwtPayload } from 'jsonwebtoken';
 
 
@@ -63,27 +63,40 @@ export const createMealByUserId = async (req: Request, res: Response) => {
 
     let { name, portion, protein, calories, grease, salt, image = "/default.png", foods_id } = req.body;
 
+    console.log("FoodsID Antes: ", foods_id);
+
+    foods_id = foods_id.map((id : string) => parseInt(id));
+    
+    console.log("FoodsID modificado: ",foods_id);
+    console.log("REQ.BODY: ", req.body)
+    console.log("NAME: ",name); //undefined
+    console.log("PORTION: ",portion); //undefined 
+    console.log("PROTEIN: ",protein); //undefined
+    console.log("FoodsID: ",foods_id); //undefined
+
+
+
     if (image === undefined || image === "") {
         image = "/default.png";
     }
 
-    if (protein !== undefined || protein !== "") {
+    if (protein !== undefined && protein !== "" && typeof protein === "string") {
         protein = replaceCommaWithDot(protein);
     }
 
-    if (calories !== undefined || calories !== "") {
+    if (calories !== undefined && calories !== "" && typeof protein === "string") {
         calories = replaceCommaWithDot(calories);
     }
 
-    if (grease !== undefined || grease !== "") {
+    if (grease !== undefined && grease !== "" && typeof protein === "string") {
         grease = replaceCommaWithDot(grease);
     }
 
-    if (salt !== undefined || salt !== "") {
+    if (salt !== undefined && salt !== "" && typeof protein === "string") {
         salt = replaceCommaWithDot(salt);
     }
 
-    if (!foods_id) {
+    if (!foods_id && foods_id.length === 0) {
         res.status(400).json({ error: "FoodIds cant be empty." });
         return;
     }
