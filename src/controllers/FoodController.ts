@@ -329,23 +329,31 @@ export const createFoodsByUserId = async (req: Request, res: Response) => {
 
     let { name, portion, protein, calories, grease, salt, image = "/default.png" } = req.body;
 
+    console.log("NAME: ", name); //undefined
+    console.log("portion: ", portion); //undefined
+    console.log("protein: ", protein); //undefined
+    console.log("calories: ", calories); //undefined
+    console.log("grease: ", grease); //undefined
+    console.log("salt: ", salt); //undefined
+    console.log("image: ", image); //undefined
+
     if (image === undefined || image === "") {
         image = "/default.png";
     }
 
-    if (protein !== undefined || protein !== "") {
+    if (protein !== undefined || protein !== "" && typeof protein === "string") {
         protein = replaceCommaWithDot(protein);
     }
 
-    if (calories !== undefined || calories !== "") {
+    if (calories !== undefined || calories !== "" && typeof protein === "string") {
         calories = replaceCommaWithDot(calories);
     }
 
-    if (grease !== undefined || grease !== "") {
+    if (grease !== undefined || grease !== "" && typeof protein === "string") {
         grease = replaceCommaWithDot(grease);
     }
 
-    if (salt !== undefined || salt !== "") {
+    if (salt !== undefined || salt !== "" && typeof protein === "string") {
         salt = replaceCommaWithDot(salt);
     }
 

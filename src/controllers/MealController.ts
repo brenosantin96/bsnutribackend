@@ -143,14 +143,9 @@ export const createMealByUserId = async (req: Request, res: Response) => {
                 image,
                 meals_has_foods: {
                     createMany: {
-                        data: [
-                            {
-                                foods_id: 8
-                            },
-                            {
-                                foods_id: 9
-                            }
-                        ]
+                        data: foods_id.map((foodId: number) => ({
+                            foods_id: foodId
+                        }))
                     }
                 },
                 users_has_meals: {
@@ -197,3 +192,19 @@ Key: foods_id[] Value: 9;
 
 
 */
+
+
+/* 
+
+{
+    "name": "Carne con patatas",
+    "portion": "100",
+    "protein": "33",
+    "calories": "33",
+    "grease": "33",
+    "salt": "3",
+    "image": "./default.png",
+    "foods_id": [8, 9]
+  } 
+  
+  */
