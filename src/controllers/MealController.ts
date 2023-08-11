@@ -63,18 +63,25 @@ export const createMealByUserId = async (req: Request, res: Response) => {
 
     let { name, portion, protein, calories, grease, salt, image = "/default.png", foods_id } = req.body;
 
-    console.log("FoodsID Antes: ", foods_id);
+    console.log(req.body);
 
-    foods_id = foods_id.map((id : string) => parseInt(id));
-    
-    console.log("FoodsID modificado: ",foods_id);
-    console.log("REQ.BODY: ", req.body)
-    console.log("NAME: ",name); //undefined
-    console.log("PORTION: ",portion); //undefined 
-    console.log("PROTEIN: ",protein); //undefined
-    console.log("FoodsID: ",foods_id); //undefined
+    /* REQ.BODY:  {
+        name: 'Carne con patatas',
+        portion: '100',
+        protein: '33',
+        calories: '33',
+        grease: '33',
+        salt: '3',
+        image: './default.png',
+        foods_id: [ '8', '9' ]
+      } */
 
 
+    console.log("FoodsID Antes: ", foods_id); //['8', '9'] 
+
+    foods_id = foods_id.map((id: string) => parseInt(id)); //executado funcao para transformar os valores do array em numeros
+    let foods_id_number: number[] = foods_id; //por algumar razao, em data de createMany nao me permite pegar o foods_id_number, porque?
+    console.log("FoodsID depois: ", foods_id); //[8, 9] 
 
     if (image === undefined || image === "") {
         image = "/default.png";
@@ -136,9 +143,14 @@ export const createMealByUserId = async (req: Request, res: Response) => {
                 image,
                 meals_has_foods: {
                     createMany: {
-                        data: foods_id.map((foodId: number) => ({
-                            foods: { connect: { id: foodId } }
-                        }))
+                        data: [
+                            {
+                                foods_id: 8
+                            },
+                            {
+                                foods_id: 9
+                            }
+                        ]
                     }
                 },
                 users_has_meals: {
@@ -150,7 +162,7 @@ export const createMealByUserId = async (req: Request, res: Response) => {
                         }
                     }
                 }
-                
+
             }, include: {
                 meals_has_foods: {
                     include: {
@@ -169,3 +181,19 @@ export const createMealByUserId = async (req: Request, res: Response) => {
         res.status(500).json({ error: "Internal server error." });
     }
 }
+
+/* 
+x-www-form-urlencoded
+
+Key: name Value: Carne con patatas; 
+Key: portion Value: 100; 
+Key: protein Value: 33; 
+Key: calories Value: 33; 
+Key: grease Value: 33; 
+Key: salt Value: 3; 
+Key: image Value: ./default.png; 
+Key: foods_id[] Value: 8; 
+Key: foods_id[] Value: 9;  
+
+
+*/
