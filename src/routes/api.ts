@@ -35,6 +35,7 @@ router.put('/api/foodsByUser/:id', Auth.private, FoodController.updateFoodByUser
 router.delete('/api/foodsByUser/:id', Auth.private, FoodController.deleteOneFoodByUserId); //ok
 
 //mealsByUser
+router.get('/api/mealsByUser', Auth.private, MealController.getMealsByUserId); //ok
 router.post('/api/mealsByUser', Auth.private, MealController.createMealByUserId); //ok
 
 
