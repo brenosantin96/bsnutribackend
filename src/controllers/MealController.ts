@@ -37,9 +37,13 @@ export const getMealsByUserId = async (req: Request, res: Response) => {
             include: {
                 users_has_meals: {
                     include: {
-                        meals: true
+                        meals: {
+                            include: {
+                                meals_has_foods: true
+                            }
+                        }
                     }
-                }
+                },
             }
         });
 
@@ -167,8 +171,10 @@ export const createMealByUserId = async (req: Request, res: Response) => {
 
 export const updateMealByUserId = async (req: Request, res: Response) => {
 
-    let { protein, calories, grease, salt, image = "/default.png", foods_id } = req.body;
+    let { name, protein, calories, grease, salt, image = "/default.png", foods_id } = req.body;
     const mealId = parseInt(req.params.id);
+
+    console.log("mealID: ", mealId)
 
     //transforming string array in number array
     foods_id = foods_id.map((id: string) => parseInt(id));
@@ -215,11 +221,23 @@ export const updateMealByUserId = async (req: Request, res: Response) => {
         });
 
         if (!meal) {
-            res.status(404).json({ error: "Food not found." });
+            res.status(404).json({ error: "Meal not found." });
             return;
         }
 
         if (meal) {
+
+            const requestedFoodIds: number[] = foods_id;
+
+            // Get the food IDs currently associated with the meal
+            const currentFoodIds: number[] = meal.meals_has_foods.map(item => item.foods_id);
+
+            // Calculate the food IDs to be added and removed
+            const foodIdsToAdd: number[] = requestedFoodIds.filter(id => !currentFoodIds.includes(id));
+            const foodIdsToRemove: number[] = currentFoodIds.filter(id => !requestedFoodIds.includes(id));
+
+
+
             let updatedMeal: MealWithFoodsArrayNumber = {
                 id: mealId,
                 name: meal.name,
@@ -234,6 +252,9 @@ export const updateMealByUserId = async (req: Request, res: Response) => {
 
             }
 
+            if (name !== undefined && name !== "") {
+                updatedMeal.name = name;
+            }
 
             if (image === undefined || image === "") {
                 updatedMeal.image = "/default.png";
@@ -280,10 +301,14 @@ export const updateMealByUserId = async (req: Request, res: Response) => {
                     grease: updatedMeal.grease,
                     salt: updatedMeal.salt,
                     meals_has_foods: {
-                        create: updatedMeal.foods.map((foodId: number) => ({
+                        create: foodIdsToAdd.map((foodId: number) => ({
                             foods: {
                                 connect: { id: foodId }
                             }
+                        })),
+
+                        deleteMany: foodIdsToRemove.map(foodID => ({
+                            foods_id: foodID
                         }))
                     },
                     image: updatedMeal.image
@@ -300,6 +325,56 @@ export const updateMealByUserId = async (req: Request, res: Response) => {
         res.status(500).json({ error: "Internal server error." });
     }
 }
+
+
+export const deleteOneMealByUserId = async (req: Request, res: Response) => {
+
+    const mealId = parseInt(req.params.id); // ID do alimento a ser atualizado 
+
+    // getting auth token
+    const authorizationHeader = req.headers.authorization;
+    if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
+        res.status(401).json({ error: "Unauthorized." });
+        return;
+    }
+
+    //taking away the word Bearer
+    const token = authorizationHeader.split(" ")[1]; 
+
+    try {
+        //getting user Info Token
+        const decodedToken = JWT.verify(token, process.env.JWT_SECRET_KEY as string) as DecodedToken;
+
+        const user = await prisma.user.findUnique({
+            where: { id: decodedToken.id },
+            include: {
+                users_has_meals: {
+                    where: { meals_id: mealId }
+                }
+            }
+        });
+
+        if (!user || user.users_has_meals.length === 0) {
+            res.status(404).json({ error: "Meal not found or doesn't belong to the user." });
+            return;
+        }
+
+        // Exclua o alimento
+        await prisma.meal.delete({
+            where: { id: mealId }
+        });
+
+        return res.status(200).json({ msg: "Meal removed with success" });
+
+
+    } catch (error) {
+        console.log("Error:", error )
+        res.status(500).json({ error: "Internal server error." });
+    }
+}
+
+
+
 
 /* 
 x-www-form-urlencoded

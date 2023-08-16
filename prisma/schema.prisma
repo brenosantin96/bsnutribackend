@@ -80,7 +80,7 @@ model meals_has_foods {
   meals_id Int
   foods_id Int
   foods    Food @relation(fields: [foods_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_meals_has_foods_foods1")
-  meals    Meal @relation(fields: [meals_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_meals_has_foods_meals")
+  meals    Meal @relation(fields: [meals_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "fk_meals_has_foods_meals")
 
   @@id([meals_id, foods_id])
   @@index([foods_id], map: "fk_meals_has_foods_foods1_idx")
@@ -101,7 +101,7 @@ model users_has_foods {
 model users_has_meals {
   users_id Int
   meals_id Int
-  meals    Meal @relation(fields: [meals_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_has_meals_meals1")
+  meals    Meal @relation(fields: [meals_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "fk_users_has_meals_meals1")
   users    User @relation(fields: [users_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_has_meals_users1")
 
   @@id([users_id, meals_id])
