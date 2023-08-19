@@ -4,6 +4,7 @@ import * as UserController from '../controllers/UserController';
 import * as LoginAndRegisterController from '../controllers/LoginAndRegisterController';
 import * as FoodController from '../controllers/FoodController';
 import * as MealController from '../controllers/MealController';
+import * as InfoNutriDayController from '../controllers/InfoNutriDayController';
 
 import { Auth } from '../middlewares/Auth';
 
@@ -40,6 +41,8 @@ router.post('/api/mealsByUser', Auth.private, MealController.createMealByUserId)
 router.put('/api/mealsByUser/:id', Auth.private, MealController.updateMealByUserId); //ok
 router.delete('/api/mealsByUser/:id', Auth.private, MealController.deleteOneMealByUserId) //ok 
 
+//InfoNutriDay
+router.post('/api/infoNutriDay', Auth.private, InfoNutriDayController.createInfoNutriDay); //doing
 
 
 

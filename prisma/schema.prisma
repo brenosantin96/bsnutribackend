@@ -21,13 +21,13 @@ model User {
 
 model Food {
   id                     Int                      @id @default(autoincrement())
-  name                   String                   
+  name                   String
   portion                Int
   protein                Float                    @db.Float
   calories               Float                    @db.Float
   grease                 Float                    @db.Float
   salt                   Float                    @db.Float
-  image                  String?                  
+  image                  String?
   infonutriday_has_meals infonutriday_has_meals[]
   meals_has_foods        meals_has_foods[]
   users_has_foods        users_has_foods[]
@@ -37,14 +37,14 @@ model Food {
 
 model Meal {
   id                     Int                      @id @default(autoincrement())
-  name                   String                   
+  name                   String
   isMeal                 Int                      @db.TinyInt
   portion                Int
   protein                Float                    @db.Float
   calories               Float                    @db.Float
   grease                 Float                    @db.Float
   salt                   Float                    @db.Float
-  image                  String?                  
+  image                  String?
   infonutriday_has_meals infonutriday_has_meals[]
   meals_has_foods        meals_has_foods[]
   users_has_meals        users_has_meals[]
@@ -67,6 +67,8 @@ model infonutriday_has_meals {
   InfoNutriDay_id String       @id @db.VarChar(45)
   meals_id        Int?
   foods_id        Int?
+  qtMeal          Int?         @default(1)
+  qtFood          Int?         @default(1)
   infonutriday    infonutriday @relation(fields: [InfoNutriDay_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_InfoNutriDay_has_meals_InfoNutriDay1")
   foods           Food?        @relation(fields: [foods_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_InfoNutriDay_has_meals_foods1")
   meals           Meal?        @relation(fields: [meals_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_InfoNutriDay_has_meals_meals1")
