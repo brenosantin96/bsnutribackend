@@ -254,7 +254,6 @@ export const getFoodsByUserId = async (req: Request, res: Response) => {
             }
         });
 
-        console.log("USER: ", user)
 
         if (!user) {
             res.status(404).json({ error: "User not found." });
@@ -329,13 +328,6 @@ export const createFoodsByUserId = async (req: Request, res: Response) => {
 
     let { name, portion, protein, calories, grease, salt, image = "/default.png" } = req.body;
 
-    console.log("NAME: ", name); //undefined
-    console.log("portion: ", portion); //undefined
-    console.log("protein: ", protein); //undefined
-    console.log("calories: ", calories); //undefined
-    console.log("grease: ", grease); //undefined
-    console.log("salt: ", salt); //undefined
-    console.log("image: ", image); //undefined
 
     if (image === undefined || image === "") {
         image = "/default.png";

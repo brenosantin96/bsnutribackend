@@ -71,6 +71,7 @@ export const createMealByUserId = async (req: Request, res: Response) => {
 
     //transforming string array in number array
     foods_id = foods_id.map((id: string) => parseInt(id));
+    console.log("Foods_Id: ", foods_id);
 
 
     if (image === undefined || image === "") {
@@ -108,10 +109,9 @@ export const createMealByUserId = async (req: Request, res: Response) => {
     //taking away the word Bearer
     const token = authorizationHeader.split(" ")[1];
 
-    // Decodifique o token para obter os dados do usuário
     try {
+        //getting user info
         const decodedToken = JWT.verify(token, process.env.JWT_SECRET_KEY as string) as DecodedToken;
-        // Agora você pode acessar os dados do usuário do token, como decodedToken.id e decodedToken.email
 
         const user = await prisma.user.findUnique({
             where: { id: decodedToken.id },
@@ -133,12 +133,9 @@ export const createMealByUserId = async (req: Request, res: Response) => {
                 salt: parseFloat(salt),
                 image,
                 meals_has_foods: {
-                    createMany: {
-                        data: foods_id.map((foodId: number) => ({
-                            foods_id: foodId
-                        }))
-                    }
+                    connect: foods_id.map((id : number) => {id: id})        
                 },
+
                 users_has_meals: {
                     create: {
                         users: {
@@ -159,6 +156,7 @@ export const createMealByUserId = async (req: Request, res: Response) => {
         });
 
 
+
         res.status(200).json({ msg: "Food created with success:", meal: newMeal });
         return
 
@@ -169,7 +167,7 @@ export const createMealByUserId = async (req: Request, res: Response) => {
 }
 
 
-export const updateMealByUserId = async (req: Request, res: Response) => {
+/* export const updateMealByUserId = async (req: Request, res: Response) => {
 
     let { name, protein, calories, grease, salt, image = "/default.png", foods_id } = req.body;
     const mealId = parseInt(req.params.id);
@@ -324,7 +322,7 @@ export const updateMealByUserId = async (req: Request, res: Response) => {
         console.error("Error: ", error);
         res.status(500).json({ error: "Internal server error." });
     }
-}
+} */
 
 
 export const deleteOneMealByUserId = async (req: Request, res: Response) => {
@@ -339,7 +337,7 @@ export const deleteOneMealByUserId = async (req: Request, res: Response) => {
     }
 
     //taking away the word Bearer
-    const token = authorizationHeader.split(" ")[1]; 
+    const token = authorizationHeader.split(" ")[1];
 
     try {
         //getting user Info Token
@@ -368,7 +366,7 @@ export const deleteOneMealByUserId = async (req: Request, res: Response) => {
 
 
     } catch (error) {
-        console.log("Error:", error )
+        console.log("Error:", error)
         res.status(500).json({ error: "Internal server error." });
     }
 }

@@ -25,7 +25,7 @@ interface DecodedToken extends JwtPayload {
 
 export const createInfoNutriDay = async (req: Request, res: Response) => {
 
-    let { id, date, protein, calories, grease, salt, finalizedDay, meals_id, foods_id } = req.body;
+    let { id, date, portion, protein, calories, grease, salt, finalizedDay, meals_id, foods_id } = req.body;
 
     //transforming string array in number array
     foods_id = foods_id.map((id: string) => parseInt(id));
@@ -34,8 +34,6 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
     let foods_id_array_objects = createArrayOfObjects(foods_id);
     let meals_id_array_objects = createArrayOfObjects(meals_id);
 
-    console.log("foods_id_array_objects: ", foods_id_array_objects)
-    console.log("meals_id_array_objects: ", meals_id_array_objects)
 
 
     if (finalizedDay) {
@@ -92,6 +90,7 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
             data: {
                 id,
                 date,
+                portion,
                 protein: parseFloat(protein),
                 calories: parseFloat(calories),
                 grease: parseFloat(grease),
