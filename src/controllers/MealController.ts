@@ -133,7 +133,7 @@ export const createMealByUserId = async (req: Request, res: Response) => {
                 salt: parseFloat(salt),
                 image,
                 meals_has_foods: {
-                    connect: foods_id.map((id : number) => {id: id})        
+                    connect: foods_id.map((id : number) => {id: id})  //essa linha me retorna undefined, mesmo tendo valores em foods_id      
                 },
 
                 users_has_meals: {
