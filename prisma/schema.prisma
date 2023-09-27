@@ -8,13 +8,14 @@ datasource db {
 }
 
 model User {
-  id              Int               @id @default(autoincrement())
-  name            String
-  email           String            @unique
-  password        String
-  isAdmin         Int               @db.TinyInt
-  users_has_foods users_has_foods[]
-  users_has_meals users_has_meals[]
+  id                     Int                      @id @default(autoincrement())
+  name                   String
+  email                  String                   @unique
+  isAdmin                Int                      @db.TinyInt
+  password               String
+  infonutriday_has_users infonutriday_has_users[]
+  users_has_foods        users_has_foods[]
+  users_has_meals        users_has_meals[]
 
   @@map("users")
 }
@@ -53,23 +54,24 @@ model Meal {
 }
 
 model infonutriday {
-  id                     String                  @id @db.VarChar(45)
-  date                   DateTime                @db.Date
-  portion                Float                   @db.Float
-  protein                Float                   @db.Float
-  calories               Float                   @db.Float
-  grease                 Float                   @db.Float
-  salt                   Float                   @db.Float
-  finalizedDay           Int                     @db.TinyInt
+  id                     String                   @id @db.VarChar(45)
+  date                   DateTime                 @db.Date
+  portion                Float                    @db.Float
+  protein                Float                    @db.Float
+  calories               Float                    @db.Float
+  grease                 Float                    @db.Float
+  salt                   Float                    @db.Float
+  finalizedDay           Int                      @db.TinyInt
   infonutriday_has_foods infonutriday_has_foods?
   infonutriday_has_meals infonutriday_has_meals?
+  infonutriday_has_users infonutriday_has_users[]
 }
 
 model infonutriday_has_meals {
   infonutriday_id String       @id @db.VarChar(45)
   meals_id        Int?
-  infonutriday    infonutriday @relation(fields: [infonutriday_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_infonutriday_has_meals_infonutriday1")
   meals           Meal?        @relation(fields: [meals_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_InfoNutriDay_has_meals_meals1")
+  infonutriday    infonutriday @relation(fields: [infonutriday_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_infonutriday_has_meals_infonutriday1")
 
   @@index([infonutriday_id], map: "fk_infonutriday_has_meals_infonutriday1_idx")
   @@index([meals_id], map: "fk_infonutriday_has_meals_meals1_idx")
@@ -116,4 +118,15 @@ model infonutriday_has_foods {
 
   @@index([foods_id], map: "fk_infonutriday_has_foods_foods1_idx")
   @@index([infonutriday_id], map: "fk_infonutriday_has_foods_infonutriday1_idx")
+}
+
+model infonutriday_has_users {
+  infonutriday_id String       @db.VarChar(45)
+  users_id        Int
+  infonutriday    infonutriday @relation(fields: [infonutriday_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_infonutriday_has_users_infonutriday1")
+  users           User         @relation(fields: [users_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_infonutriday_has_users_users1")
+
+  @@id([infonutriday_id, users_id])
+  @@index([infonutriday_id], map: "fk_infonutriday_has_users_infonutriday1_idx")
+  @@index([users_id], map: "fk_infonutriday_has_users_users1_idx")
 }

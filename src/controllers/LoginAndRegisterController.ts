@@ -32,6 +32,7 @@ export const signUp = async (req: Request, res: Response) => {
             isAdmin: isAdmin === 1 ? 1 : 0,
           },
         });
+        
 
         const token = JWT.sign(
           {
@@ -42,7 +43,7 @@ export const signUp = async (req: Request, res: Response) => {
           },
           process.env.JWT_SECRET_KEY as string,
           {
-            expiresIn: "2h",
+            expiresIn: "30d",
           }
         );
 
@@ -74,7 +75,6 @@ export const login = async (req: Request, res: Response) => {
       console.log("PASSWORD ENVIADA NO CORPO DA REQUISICAO:", passwordReq); //undefined
       console.log("EMAIL ENVIADO NO CORPO DA REQUISICAO:", email); //undefined
 
-
       const matchedPasswords = await bcrypt.compare(passwordReq, password);
 
       //tasd
@@ -88,7 +88,7 @@ export const login = async (req: Request, res: Response) => {
           { id: user.id, email: user.email, password: user.password },
           process.env.JWT_SECRET_KEY as string,
           {
-            expiresIn: "2h",
+            expiresIn: "30d",
           }
         );
 
