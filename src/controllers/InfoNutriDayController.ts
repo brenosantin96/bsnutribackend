@@ -105,7 +105,7 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
                 salt: parseFloat(salt),
                 finalizedDay,
 
-                infonutriday_has_foods: {
+                 infonutriday_has_foods: {
                     create: foods_id.map((foodId: number) => ({
                         foods: {
                             connect: {
@@ -113,7 +113,8 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
                             }
                         }
                     }))
-                },
+                }, 
+
 
                 infonutriday_has_meals: {
                     create: meals_id.map((mealId: number) => ({
