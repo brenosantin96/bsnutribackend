@@ -68,12 +68,11 @@ model infonutriday {
 }
 
 model infonutriday_has_meals {
-  infonutriday_id String       @db.VarChar(45) @unique
-  meals_id        Int
-  meals           Meal        @relation(fields: [meals_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_InfoNutriDay_has_meals_meals1")
+  infonutriday_id String       @id @db.VarChar(45)
+  meals_id        Int?
+  meals           Meal?        @relation(fields: [meals_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_InfoNutriDay_has_meals_meals1")
   infonutriday    infonutriday @relation(fields: [infonutriday_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_infonutriday_has_meals_infonutriday1")
 
-  @@id([infonutriday_id, meals_id])
   @@index([infonutriday_id], map: "fk_infonutriday_has_meals_infonutriday1_idx")
   @@index([meals_id], map: "fk_infonutriday_has_meals_meals1_idx")
 }
@@ -112,12 +111,11 @@ model users_has_meals {
 }
 
 model infonutriday_has_foods {
-  infonutriday_id String       @db.VarChar(45) @unique
-  foods_id        Int
-  foods           Food       @relation(fields: [foods_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_infonutriday_has_foods_foods1")
+  infonutriday_id String       @id @db.VarChar(45)
+  foods_id        Int?
+  foods           Food?        @relation(fields: [foods_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_infonutriday_has_foods_foods1")
   infonutriday    infonutriday @relation(fields: [infonutriday_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_infonutriday_has_foods_infonutriday1")
 
-  @@id([infonutriday_id, foods_id])
   @@index([foods_id], map: "fk_infonutriday_has_foods_foods1_idx")
   @@index([infonutriday_id], map: "fk_infonutriday_has_foods_infonutriday1_idx")
 }
