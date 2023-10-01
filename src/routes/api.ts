@@ -35,7 +35,9 @@ router.put('/api/mealsByUser/:id', Auth.private, MealController.updateMealByUser
 router.delete('/api/mealsByUser/:id', Auth.private, MealController.deleteOneMealByUserId) //ok 
 
 //InfoNutriDay
-router.post('/api/infoNutriDay', Auth.private, InfoNutriDayController.createInfoNutriDay); //doing
+router.get('/api/infoNutriDay', Auth.private, InfoNutriDayController.getAllInfoNutriDay); //OK
+router.get('/api/infoNutriDay/:id', Auth.private, InfoNutriDayController.getOneInfoNutriDay); //DOING
+router.post('/api/infoNutriDay', Auth.private, InfoNutriDayController.createInfoNutriDay); //OK
 
 
 
