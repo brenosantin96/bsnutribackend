@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
 import prisma from '../libs/prismaClient';
-import {v4 as uuidv4} from 'uuid';  
+import { v4 as uuidv4 } from 'uuid';
 import { Food } from '../types/Food'
 import { replaceCommaWithDot } from '../utilities/formatter'
 import JWT, { JwtPayload } from 'jsonwebtoken';
 import { Meal } from '@prisma/client';
 import { MealWithFoodsArrayNumber } from '../types/Meal';
 import { createArrayOfObjects } from '../utilities/others';
+import { InfoNutriDayType } from '../types/InfoNutriDay';
 
 
 interface DecodedToken extends JwtPayload {
@@ -116,7 +117,11 @@ export const getOneInfoNutriDay = async (req: Request, res: Response) => {
 
         // details about the infoNutriDay to be updated
         const infoNutriDay = await prisma.infonutriday.findUnique({
-            where: { id: infoNutriDayId }
+            where: { id: infoNutriDayId },
+            include: {
+                foods: true,
+                meals: true,
+            }
         });
 
         if (!infoNutriDay) {
@@ -293,6 +298,227 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
     }
 }
 
+export const updateInfoNutriDay = async (req: Request, res: Response) => {
+
+    let { id, date, portion, protein, calories, grease, salt, finalizedDay, meals_id = null, foods_id = null } = req.body;
+
+    const infoNutriDayId = req.params.id;
+
+    //transforming string array in number array
+
+    if (foods_id !== undefined || foods_id !== null && foods_id.length !== 0) {
+        foods_id = foods_id.map((id: string) => parseInt(id));
+    }
+
+    if (meals_id !== undefined || meals_id !== null && meals_id.length !== 0) {
+        meals_id = meals_id.map((id: string) => parseInt(id));
+    }
+
+    if (foods_id.some(isNaN)) {
+        foods_id = null
+    }
+
+    if (meals_id.some(isNaN)) {
+        meals_id = null
+    }
+
+    if (finalizedDay) {
+        finalizedDay = "false" ? 0 : 1;
+    }
+
+    if (!protein && !calories && !grease && !salt && foods_id.length === 0 && meals_id.length === 0) {
+        res.status(400).json({ msg: "Unable to update, please enter a field to be updated." });
+        return;
+    }
+
+
+    // getting auth token
+    const authorizationHeader = req.headers.authorization;
+    if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
+        res.status(401).json({ error: "Unauthorized." });
+        return;
+    }
+
+    //taking away the word Bearer
+    const token = authorizationHeader.split(" ")[1];
+
+    try {
+        //getting userInfo Token
+        const decodedToken = JWT.verify(token, process.env.JWT_SECRET_KEY as string) as DecodedToken;
+
+        const user = await prisma.user.findUnique({
+            where: { id: decodedToken.id },
+            include: {
+                infonutriday_has_users: true
+            }
+        });
+
+        if (!user) {
+            res.status(404).json({ error: "User not found." });
+            return;
+        }
+
+        //getting infoNutriDay to Update
+
+        //getting Meal to update
+        const infoNutriDay = await prisma.infonutriday.findUnique({
+            where: { id: infoNutriDayId },
+            include: {
+                infonutriday_has_users: true,
+            },
+        });
+
+        if (!infoNutriDay) {
+            res.status(404).json({ error: "infoNutriDay not found." });
+            return;
+        }
+
+        if (infoNutriDay) {
+
+            const foods = await prisma.food.findMany({
+                where: {
+                    infonutridayId: infoNutriDayId
+                }
+            });
+
+            const meals = await prisma.meal.findMany({
+                where: {
+                    infonutridayId: infoNutriDayId
+                }
+            });
+
+            const requestedFoodIds: number[] = foods_id;
+
+            // Get the food IDs currently associated with the meal
+            const currentFoodIds: number[] = foods.map(
+                (item) => item.id
+            );
+
+            // Calculate the food IDs to be added and removed
+            const foodIdsToAdd: number[] = requestedFoodIds.filter(
+                (id) => !currentFoodIds.includes(id)
+            );
+
+            const foodIdsToRemove: number[] = currentFoodIds.filter(
+                (id) => !requestedFoodIds.includes(id)
+            );
+
+
+            const requestedMealsIds: number[] = meals_id;
+
+            // Get the food IDs currently associated with the meal
+            const currentMealsIds: number[] = meals.map(
+                (item) => item.id
+            );
+
+            // Calculate the food IDs to be added and removed
+            const mealIdsToAdd: number[] = requestedMealsIds.filter(
+                (id) => !currentFoodIds.includes(id)
+            );
+
+            const mealIdsToRemove: number[] = currentMealsIds.filter(
+                (id) => !requestedFoodIds.includes(id)
+            );
+
+            let updatedInfoNutriDay: InfoNutriDayType = {
+                id: infoNutriDayId,
+                date: infoNutriDay.date,
+                portion: infoNutriDay.portion,
+                protein: infoNutriDay.protein,
+                calories: infoNutriDay.calories,
+                grease: infoNutriDay.grease,
+                salt: infoNutriDay.salt,
+                finalizedDay: infoNutriDay.finalizedDay,
+                foods: foods.map((item) => item.id),
+                meals: meals.map((item) => item.id)
+
+            }
+
+            if (date !== undefined || date !== "") {
+                updatedInfoNutriDay.date = date;
+            }
+
+            if (portion === undefined || portion === "") {
+                updatedInfoNutriDay.portion = portion
+            }
+
+            if (protein !== undefined && protein !== "" && typeof protein === "string") {
+                protein = replaceCommaWithDot(protein);
+                updatedInfoNutriDay.protein = parseFloat(protein);
+            }
+
+            if (calories !== undefined && calories !== "" && typeof protein === "string") {
+                calories = replaceCommaWithDot(calories);
+                updatedInfoNutriDay.calories = parseFloat(calories);
+            }
+
+            if (grease !== undefined && grease !== "" && typeof protein === "string") {
+                grease = replaceCommaWithDot(grease);
+                updatedInfoNutriDay.grease = parseFloat(grease);
+            }
+
+            if (salt !== undefined && salt !== "" && typeof protein === "string") {
+                salt = replaceCommaWithDot(salt);
+                updatedInfoNutriDay.salt = parseFloat(salt);
+            }
+
+            if (finalizedDay !== undefined) {
+                updatedInfoNutriDay.finalizedDay = finalizedDay;
+            }
+
+            if (foods_id !== undefined && foods_id.length !== 0) {
+                updatedInfoNutriDay.foods = foods_id;
+            }
+
+            if (meals_id !== undefined && meals_id.length !== 0) {
+                updatedInfoNutriDay.meals = meals_id;
+            }
+
+            if (foods_id.length === 0 && meals_id.length === 0) {
+                res.status(400).json({ error: "FoodIds and MealsId cant be both empty." });
+                return;
+            }
+
+            let savedInfoNutriDay = await prisma.infonutriday.update({
+                where: {
+                    id: infoNutriDayId,
+                },
+                data: {
+                    date: updatedInfoNutriDay.date,
+                    portion: updatedInfoNutriDay.portion,
+                    protein: updatedInfoNutriDay.protein,
+                    calories: updatedInfoNutriDay.calories,
+                    grease: updatedInfoNutriDay.grease,
+                    salt: updatedInfoNutriDay.salt,
+                    finalizedDay: updatedInfoNutriDay.finalizedDay,
+                    foods: {
+                        connect: foodIdsToAdd.map((foodId: number) => ({
+                            id: foodId
+                        })),
+                        deleteMany: foodIdsToRemove.map((foodId: number) => ({
+                            id: foodId
+                        })),
+                    },
+                    meals: {
+                        connect: mealIdsToAdd.map((mealId: number) => ({
+                            id: mealId
+                        })),
+                        deleteMany: mealIdsToRemove.map((mealId: number) => ({
+                            id: mealId
+                        })),
+                    }
+                }
+            });
+
+            res.status(200).json({ msg: "InfoNutriDay updated with success:", meal: savedInfoNutriDay });
+            return;
+
+        }
+    } catch (err) {
+        console.error("Error: ", err);
+        res.status(500).json({ error: "Internal server error." });
+    }
+}
 
 /* 
 
