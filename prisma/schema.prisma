@@ -98,13 +98,25 @@ model users_has_foods {
 model users_has_meals {
   users_id Int
   meals_id Int
-  meals    Meal @relation(fields: [meals_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_has_meals_meals1")
-  users    User @relation(fields: [users_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_has_meals_users1")
+  meals    Meal @relation(fields: [meals_id], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "fk_users_has_meals_meals1")
+  users    User @relation(fields: [users_id], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "fk_users_has_meals_users1")
 
   @@id([users_id, meals_id])
   @@index([meals_id], map: "fk_users_has_meals_meals1_idx")
   @@index([users_id], map: "fk_users_has_meals_users1_idx")
 }
+
+model infonutriday_has_users {
+  infonutriday_id String       @db.VarChar(45)
+  users_id        Int
+  infonutriday    infonutriday @relation(fields: [infonutriday_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "fk_infonutriday_has_users_infonutriday1")
+  users           User         @relation(fields: [users_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "fk_infonutriday_has_users_users1")
+
+  @@id([infonutriday_id, users_id])
+  @@index([infonutriday_id], map: "fk_infonutriday_has_users_infonutriday1_idx")
+  @@index([users_id], map: "fk_infonutriday_has_users_users1_idx")
+}
+
 
 // model infonutriday_has_meals {
 //   infonutriday_id String       @id @db.VarChar(45)
@@ -125,14 +137,3 @@ model users_has_meals {
 //   @@index([foods_id], map: "fk_infonutriday_has_foods_foods1_idx")
 //   @@index([infonutriday_id], map: "fk_infonutriday_has_foods_infonutriday1_idx")
 // }
-
-model infonutriday_has_users {
-  infonutriday_id String       @db.VarChar(45)
-  users_id        Int
-  infonutriday    infonutriday @relation(fields: [infonutriday_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_infonutriday_has_users_infonutriday1")
-  users           User         @relation(fields: [users_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_infonutriday_has_users_users1")
-
-  @@id([infonutriday_id, users_id])
-  @@index([infonutriday_id], map: "fk_infonutriday_has_users_infonutriday1_idx")
-  @@index([users_id], map: "fk_infonutriday_has_users_users1_idx")
-}

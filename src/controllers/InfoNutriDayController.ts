@@ -315,18 +315,20 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
     }
 
     if (foods_id.some(isNaN)) {
-        foods_id = null
+        let arraynumber: number[] = [];
+        foods_id = arraynumber;
     }
 
     if (meals_id.some(isNaN)) {
-        meals_id = null
+        let arraynumber: number[] = [];
+        meals_id = arraynumber;
     }
 
     if (finalizedDay) {
         finalizedDay = "false" ? 0 : 1;
     }
 
-    if (!protein && !calories && !grease && !salt && foods_id.length === 0 && meals_id.length === 0) {
+    if (!portion && !protein && !calories && !grease && !salt && foods_id.length === 0 && meals_id.length === 0) {
         res.status(400).json({ msg: "Unable to update, please enter a field to be updated." });
         return;
     }
@@ -435,7 +437,12 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
             }
 
             if (date !== undefined || date !== "") {
+                console.log("ENTROU NO IF DO DATE ANTES", infoNutriDay.date)
+                console.log("TYPE ANTES", typeof (infoNutriDay.date))
                 updatedInfoNutriDay.date = date;
+                console.log("ENTROU NO IF DO DATE DEPOIS", infoNutriDay.date)
+                console.log("TYPE DEPOIS", typeof (infoNutriDay.date))
+
             }
 
             if (portion === undefined || portion === "") {
@@ -462,7 +469,7 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
                 updatedInfoNutriDay.salt = parseFloat(salt);
             }
 
-            if (finalizedDay !== undefined) {
+            if (finalizedDay !== undefined && finalizedDay !== "") {
                 updatedInfoNutriDay.finalizedDay = finalizedDay;
             }
 
@@ -484,7 +491,7 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
                     id: infoNutriDayId,
                 },
                 data: {
-                    date: updatedInfoNutriDay.date,
+                    date: date !== null && date !== undefined && date !== "" ? new Date(updatedInfoNutriDay.date.toString()) : infoNutriDay.date,
                     portion: updatedInfoNutriDay.portion,
                     protein: updatedInfoNutriDay.protein,
                     calories: updatedInfoNutriDay.calories,
@@ -535,5 +542,24 @@ foods_id[] : 1,
 foods_id[] : 2,
 meals_id[] : 1,
 meals_id[] : 2 
+
+*/
+
+/* 
+
+Exemplo de requisicao para atualizar em x-www-form-urlencoded
+
+http://localhost:5000/api/infoNutriDay/04-ago-2023+1696266423026
+
+date: ,
+portion: ,
+protein: 300,
+calories: ,
+grease: ,
+salt: ,
+finalizedDay: ,
+foods_id[] : 1 ,
+meals_id[] : ,
+
 
 */
