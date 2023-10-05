@@ -138,6 +138,7 @@ interface DecodedToken extends JwtPayload {
     }
 }; */
 
+/*
 
 export const createInfoNutriDay = async (req: Request, res: Response) => {
 
@@ -234,52 +235,34 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
                 finalizedDay,
 
 
-                infonutriday_has_foods: foods_id ? {
-                    create: foods_id.map((foodId: number) => ({
-                        foods: {
-                            connect: {
-                                id: foodId,
-                            },
-                        },
-                    })),
+                foods: foods_id ? {
+                    connect: foods_id.map((foodId: number) => ({
+                        id: foodId
+                    }))
                 } : undefined,
 
-                infonutriday_has_meals: meals_id ? {
-                    create: meals_id.map((mealId: number) => ({
-                        meals: {
-                            connect: {
-                                id: mealId,
-                            },
-                        },
-                    })),
+                 foods: {
+                    connect: foods_id.map((foodId: number) => ({
+                        id: foodId
+                    }))
+                }, 
+
+
+                 foods: {
+                   create: foods_id.map((foodId: number) => ({
+                       foods: {
+                           connect: {
+                               id: foodId,
+                           }
+                       }
+                   }))
+               },  
+
+                meals: meals_id ? {
+                    connect: meals_id.map((meals_id: number) => ({
+                        id: meals_id
+                    }))
                 } : undefined,
-
-
-
-
-                /*  infonutriday_has_meals: meals_id ? {
-                     create: {
-                         meals: {
-                             connect: meals_id.map((mealId: number) => (
-                                 {
-                                     id: mealId,
-                                 }
-                             ))
- 
-                         },
-                     },
-                 } : undefined, */
-
-
-
-                /* infonutriday_has_meals: meals_id ? {
-                    connect: meals_id.map((mealId: number) => (
-                        {
-                            id: mealId
-                        }
-                    ))
-                } : undefined, */
-
 
                 infonutriday_has_users: {
                     create: {
@@ -294,20 +277,17 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
             },
 
             include: {
-
-                infonutriday_has_foods: {
-                    include: {
-                        foods: true
+                foods: {
+                    select: {
+                        name: true
                     }
                 },
-
-                infonutriday_has_meals: {
-                    include: {
-                        meals: true
+                meals: {
+                    select: {
+                        name: true
                     }
-                },
+                }
             }
-
         });
 
         res.status(200).json({ msg: "InfoNutriDay created with success:", infoNutriDay: newInfoNutriDay });
@@ -318,6 +298,8 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
         res.status(500).json({ error: "Internal server error." });
     }
 }
+
+*/
 
 /* export const updateInfoNutriDay = async (req: Request, res: Response) => {
 

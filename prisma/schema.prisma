@@ -21,40 +21,36 @@ model User {
 }
 
 model Food {
-  id             Int     @id @default(autoincrement())
-  name           String
-  portion        Int
-  protein        Float   @db.Float
-  calories       Float   @db.Float
-  grease         Float   @db.Float
-  salt           Float   @db.Float
-  image          String?
-  infonutridayId String?
+  id       Int     @id @default(autoincrement())
+  name     String
+  portion  Int
+  protein  Float   @db.Float
+  calories Float   @db.Float
+  grease   Float   @db.Float
+  salt     Float   @db.Float
+  image    String?
 
-  infonutriday infonutriday? @relation(fields: [infonutridayId], references: [id])
-
-  meals_has_foods meals_has_foods[]
-  users_has_foods users_has_foods[]
+  infonutriday_has_foods infonutriday_has_foods[]
+  meals_has_foods        meals_has_foods[]
+  users_has_foods        users_has_foods[]
 
   @@map("foods")
 }
 
 model Meal {
-  id             Int     @id @default(autoincrement())
-  name           String
-  isMeal         Int     @db.TinyInt
-  portion        Int
-  protein        Float   @db.Float
-  calories       Float   @db.Float
-  grease         Float   @db.Float
-  salt           Float   @db.Float
-  image          String?
-  infonutridayId String?
+  id       Int     @id @default(autoincrement())
+  name     String
+  isMeal   Int     @db.TinyInt
+  portion  Int
+  protein  Float   @db.Float
+  calories Float   @db.Float
+  grease   Float   @db.Float
+  salt     Float   @db.Float
+  image    String?
 
-  infonutriday infonutriday? @relation(fields: [infonutridayId], references: [id])
-
-  meals_has_foods meals_has_foods[]
-  users_has_meals users_has_meals[]
+  infonutriday_has_meals infonutriday_has_meals[]
+  meals_has_foods        meals_has_foods[]
+  users_has_meals        users_has_meals[]
 
   @@map("meals")
 }
@@ -68,72 +64,67 @@ model infonutriday {
   grease                 Float                    @db.Float
   salt                   Float                    @db.Float
   finalizedDay           Int                      @db.TinyInt
-  meals                  Meal[]
-  foods                  Food[]
+
+  infonutriday_has_meals infonutriday_has_meals[]
+  infonutriday_has_foods infonutriday_has_foods[]
   infonutriday_has_users infonutriday_has_users[]
 }
 
-model meals_has_foods {
-  meals_id Int
-  foods_id Int
-  foods    Food @relation(fields: [foods_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_meals_has_foods_foods1")
-  meals    Meal @relation(fields: [meals_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_meals_has_foods_meals")
+model infonutriday_has_meals {
+  infonutriday_id String       @db.VarChar(45)
+  infonutriday    infonutriday @relation(fields: [infonutriday_id], references: [id])
 
-  @@id([meals_id, foods_id])
-  @@index([foods_id], map: "fk_meals_has_foods_foods1_idx")
-  @@index([meals_id], map: "fk_meals_has_foods_meals_idx")
+  meals_id Int
+  meals    Meal @relation(fields: [meals_id], references: [id])
+
+  @@id([infonutriday_id, meals_id])
 }
 
-model users_has_foods {
-  users_id Int
+model infonutriday_has_foods {
+  infonutriday_id String
+  infonutriday    infonutriday @relation(fields: [infonutriday_id], references: [id])
+
   foods_id Int
-  foods    Food @relation(fields: [foods_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_users_has_foods_foods1")
-  users    User @relation(fields: [users_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_users_has_foods_users1")
+  foods    Food @relation(fields: [foods_id], references: [id])
 
-  @@id([users_id, foods_id])
-  @@index([foods_id], map: "fk_users_has_foods_foods1_idx")
-  @@index([users_id], map: "fk_users_has_foods_users1_idx")
-}
-
-model users_has_meals {
-  users_id Int
-  meals_id Int
-  meals    Meal @relation(fields: [meals_id], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "fk_users_has_meals_meals1")
-  users    User @relation(fields: [users_id], references: [id], onDelete: NoAction, onUpdate: Cascade, map: "fk_users_has_meals_users1")
-
-  @@id([users_id, meals_id])
-  @@index([meals_id], map: "fk_users_has_meals_meals1_idx")
-  @@index([users_id], map: "fk_users_has_meals_users1_idx")
+  @@id([infonutriday_id, foods_id])
 }
 
 model infonutriday_has_users {
   infonutriday_id String       @db.VarChar(45)
-  users_id        Int
-  infonutriday    infonutriday @relation(fields: [infonutriday_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "fk_infonutriday_has_users_infonutriday1")
-  users           User         @relation(fields: [users_id], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "fk_infonutriday_has_users_users1")
+  infonutriday    infonutriday @relation(fields: [infonutriday_id], references: [id])
+
+  users_id Int
+  users    User @relation(fields: [users_id], references: [id])
 
   @@id([infonutriday_id, users_id])
-  @@index([infonutriday_id], map: "fk_infonutriday_has_users_infonutriday1_idx")
-  @@index([users_id], map: "fk_infonutriday_has_users_users1_idx")
+}
+
+model meals_has_foods {
+  meals_id Int
+  meals    Meal @relation(fields: [meals_id], references: [id])
+  foods_id Int
+  foods    Food @relation(fields: [foods_id], references: [id])
+
+  @@id([meals_id, foods_id])
+}
+
+model users_has_foods {
+  users_id Int
+  users    User @relation(fields: [users_id], references: [id])
+  foods_id Int
+  foods    Food @relation(fields: [foods_id], references: [id])
+
+  @@id([users_id, foods_id])
+}
+
+model users_has_meals {
+  users_id Int
+  users    User @relation(fields: [users_id], references: [id])
+  meals_id Int
+  meals    Meal @relation(fields: [meals_id], references: [id])
+
+  @@id([users_id, meals_id])
 }
 
 
-// model infonutriday_has_meals {
-//   infonutriday_id String       @id @db.VarChar(45)
-//   meals_id        Int?
-//   meals           Meal?        @relation(fields: [meals_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_InfoNutriDay_has_meals_meals1")
-//   infonutriday    infonutriday @relation(fields: [infonutriday_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_infonutriday_has_meals_infonutriday1")
-
-//   @@index([infonutriday_id], map: "fk_infonutriday_has_meals_infonutriday1_idx")
-//   @@index([meals_id], map: "fk_infonutriday_has_meals_meals1_idx")
-// }
-
-// model infonutriday_has_foods {
-//   infonutriday_id String       @id @db.VarChar(45)
-//   foods_id        Int?
-//   foods           Food?        @relation(fields: [foods_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_infonutriday_has_foods_foods1")
-//   infonutriday    infonutriday @relation(fields: [infonutriday_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_infonutriday_has_foods_infonutriday1")
-
-//   @@index([foods_id], map: "fk_infonutriday_has_foods_foods1_idx")
-//   @@index([infonutriday_id], map: "fk_infonutriday_has_foods_infonutriday1_idx")
-// }
