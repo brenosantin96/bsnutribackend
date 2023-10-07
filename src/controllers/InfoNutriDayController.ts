@@ -30,7 +30,7 @@ interface DecodedToken extends JwtPayload {
   
   */
 
-/* export const getAllInfoNutriDay = async (req: Request, res: Response) => {
+export const getAllInfoNutriDay = async (req: Request, res: Response) => {
 
     // getting authToken
     const authorizationHeader = req.headers.authorization;
@@ -79,9 +79,9 @@ interface DecodedToken extends JwtPayload {
         console.error("Error fetching user's infoNutriDay:", error);
         res.status(500).json({ error: "Internal server error." });
     }
-}; */
+};
 
-/* export const getOneInfoNutriDay = async (req: Request, res: Response) => {
+export const getOneInfoNutriDay = async (req: Request, res: Response) => {
 
     const infoNutriDayId = req.params.id;
 
@@ -119,8 +119,8 @@ interface DecodedToken extends JwtPayload {
         const infoNutriDay = await prisma.infonutriday.findUnique({
             where: { id: infoNutriDayId },
             include: {
-                foods: true,
-                meals: true,
+                infonutriday_has_foods: true,
+                infonutriday_has_meals: true,
             }
         });
 
@@ -136,7 +136,7 @@ interface DecodedToken extends JwtPayload {
         console.error("Error fetching user's foods:", error);
         res.status(500).json({ error: "Internal server error." });
     }
-}; */
+};
 
 
 export const createInfoNutriDay = async (req: Request, res: Response) => {
@@ -319,7 +319,7 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
     }
 }
 
-/* export const updateInfoNutriDay = async (req: Request, res: Response) => {
+export const updateInfoNutriDay = async (req: Request, res: Response) => {
 
     let { id, date, portion, protein, calories, grease, salt, finalizedDay, meals_id = null, foods_id = null } = req.body;
 
@@ -381,9 +381,8 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
             return;
         }
 
-        //getting infoNutriDay to Update
 
-        //getting Meal to update
+        //getting infoNutriDay to update
         const infoNutriDay = await prisma.infonutriday.findUnique({
             where: { id: infoNutriDayId },
             include: {
@@ -398,24 +397,31 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
 
         if (infoNutriDay) {
 
-            const foods = await prisma.food.findMany({
+            const foods = await prisma.infonutriday_has_foods.findMany({
                 where: {
-                    infonutridayId: infoNutriDayId
-                }
+                    infonutriday_id: infoNutriDay.id,
+                },
+                include: {
+                    foods: true,
+                },
             });
 
-            const meals = await prisma.meal.findMany({
+
+
+            const meals = await prisma.infonutriday_has_meals.findMany({
                 where: {
-                    infonutridayId: infoNutriDayId
-                }
+                    infonutriday_id: infoNutriDay.id,
+                },
+                include: {
+                    meals: true,
+                },
             });
+
 
             const requestedFoodIds: number[] = foods_id;
 
             // Get the food IDs currently associated with the meal
-            const currentFoodIds: number[] = foods.map(
-                (item) => item.id
-            );
+            const currentFoodIds = foods.map((item) => item.foods.id);
 
             // Calculate the food IDs to be added and removed
             const foodIdsToAdd: number[] = requestedFoodIds.filter(
@@ -430,17 +436,15 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
             const requestedMealsIds: number[] = meals_id;
 
             // Get the food IDs currently associated with the meal
-            const currentMealsIds: number[] = meals.map(
-                (item) => item.id
-            );
+            const currentMealsIds = meals.map((item) => item.meals.id);
 
             // Calculate the food IDs to be added and removed
             const mealIdsToAdd: number[] = requestedMealsIds.filter(
-                (id) => !currentFoodIds.includes(id)
+                (id) => !currentMealsIds.includes(id)
             );
 
             const mealIdsToRemove: number[] = currentMealsIds.filter(
-                (id) => !requestedFoodIds.includes(id)
+                (id) => !requestedMealsIds.includes(id)
             );
 
             let updatedInfoNutriDay: InfoNutriDayType = {
@@ -452,18 +456,13 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
                 grease: infoNutriDay.grease,
                 salt: infoNutriDay.salt,
                 finalizedDay: infoNutriDay.finalizedDay,
-                foods: foods.map((item) => item.id),
-                meals: meals.map((item) => item.id)
+                foods: currentFoodIds,
+                meals: currentMealsIds
 
             }
 
             if (date !== undefined || date !== "") {
-                console.log("ENTROU NO IF DO DATE ANTES", infoNutriDay.date)
-                console.log("TYPE ANTES", typeof (infoNutriDay.date))
                 updatedInfoNutriDay.date = date;
-                console.log("ENTROU NO IF DO DATE DEPOIS", infoNutriDay.date)
-                console.log("TYPE DEPOIS", typeof (infoNutriDay.date))
-
             }
 
             if (portion === undefined || portion === "") {
@@ -519,22 +518,28 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
                     grease: updatedInfoNutriDay.grease,
                     salt: updatedInfoNutriDay.salt,
                     finalizedDay: updatedInfoNutriDay.finalizedDay,
-                    foods: {
-                        connect: foodIdsToAdd.map((foodId: number) => ({
-                            id: foodId
+                    infonutriday_has_foods: {
+                        create: foodIdsToAdd.map((foodId: number) => ({
+                            foods: {
+                                connect: { id: foodId },
+                            },
                         })),
-                        deleteMany: foodIdsToRemove.map((foodId: number) => ({
-                            id: foodId
+
+                        deleteMany: foodIdsToRemove.map((foodID) => ({
+                            foods_id: foodID,
                         })),
                     },
-                    meals: {
-                        connect: mealIdsToAdd.map((mealId: number) => ({
-                            id: mealId
+                    infonutriday_has_meals: {
+                        create: mealIdsToAdd.map((mealId: number) => ({
+                            meals: {
+                                connect: { id: mealId },
+                            },
                         })),
-                        deleteMany: mealIdsToRemove.map((mealId: number) => ({
-                            id: mealId
+
+                        deleteMany: mealIdsToRemove.map((mealID) => ({
+                            meals_id: mealID,
                         })),
-                    }
+                    },
                 }
             });
 
@@ -546,7 +551,68 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
         console.error("Error: ", err);
         res.status(500).json({ error: "Internal server error." });
     }
-} */
+}
+
+export const deleteOneInfonutridayByUserId = async (req: Request, res: Response) => {
+
+    const infonutridayId = req.params.id; // ID do alimento a ser atualizado
+
+    // getting auth token
+    const authorizationHeader = req.headers.authorization;
+    if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
+        res.status(401).json({ error: "Unauthorized." });
+        return;
+    }
+
+    //taking away the word Bearer
+    const token = authorizationHeader.split(" ")[1];
+
+    try {
+        //getting user Info Token
+        const decodedToken = JWT.verify(
+            token,
+            process.env.JWT_SECRET_KEY as string
+        ) as DecodedToken;
+
+        const user = await prisma.user.findUnique({
+            where: { id: decodedToken.id },
+            include: {
+                infonutriday_has_users: {
+                    where: { infonutriday_id: infonutridayId },
+                },
+            },
+        });
+
+        if (!user) {
+            res.status(404).json({ error: "Infonutriday not found or doesn't belong to the user." });
+            return;
+        }
+
+        // removing relationships between foods and meals in meals_has_foods
+        await prisma.infonutriday_has_foods.deleteMany({
+            where: { infonutriday_id: infonutridayId },
+        });
+
+        await prisma.infonutriday_has_meals.deleteMany({
+            where: { infonutriday_id: infonutridayId },
+        });
+
+        await prisma.infonutriday_has_users.deleteMany({
+            where: { infonutriday_id: infonutridayId },
+        });
+
+        // excluding meal
+        await prisma.infonutriday.delete({
+            where: { id: infonutridayId },
+        });
+
+
+        return res.status(200).json({ msg: "infoNutriDay removed with success" });
+    } catch (error) {
+        console.log("Error:", error);
+        res.status(500).json({ error: "Internal server error." });
+    }
+};
 
 /* 
 
