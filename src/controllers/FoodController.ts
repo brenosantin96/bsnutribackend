@@ -24,7 +24,7 @@ export const getFoodsByUserId = async (req: Request, res: Response) => {
 
     const token = authorizationHeader.split(" ")[1]; // Obtém o token sem o "Bearer" //gera um array onde foi feito o split
 
-    
+
     try {
         //getting user info JWT
         const decodedToken = JWT.verify(token, process.env.JWT_SECRET_KEY as string) as DecodedToken;
@@ -70,9 +70,9 @@ export const getOneFoodByUserId = async (req: Request, res: Response) => {
     }
 
     //getting token
-    const token = authorizationHeader.split(" ")[1]; 
+    const token = authorizationHeader.split(" ")[1];
 
-    
+
     try {
         const decodedToken = JWT.verify(token, process.env.JWT_SECRET_KEY as string) as DecodedToken;
         //getting user info JWT
@@ -121,18 +121,22 @@ export const createFoodsByUserId = async (req: Request, res: Response) => {
     }
 
     if (protein !== undefined || protein !== "" && typeof protein === "string") {
+        protein.toString();
         protein = replaceCommaWithDot(protein);
     }
 
     if (calories !== undefined || calories !== "" && typeof protein === "string") {
+        calories.toString();
         calories = replaceCommaWithDot(calories);
     }
 
     if (grease !== undefined || grease !== "" && typeof protein === "string") {
+        grease.toString();
         grease = replaceCommaWithDot(grease);
     }
 
     if (salt !== undefined || salt !== "" && typeof protein === "string") {
+        salt.toString();
         salt = replaceCommaWithDot(salt);
     }
 
@@ -143,7 +147,7 @@ export const createFoodsByUserId = async (req: Request, res: Response) => {
         return;
     }
 
-    const token = authorizationHeader.split(" ")[1]; 
+    const token = authorizationHeader.split(" ")[1];
 
     try {
         //user info token JWT
@@ -190,7 +194,7 @@ export const createFoodsByUserId = async (req: Request, res: Response) => {
 
 export const updateFoodByUserId = async (req: Request, res: Response) => {
 
-    const foodId = parseInt(req.params.id); 
+    const foodId = parseInt(req.params.id);
     let { portion, protein, calories, grease, salt, image = "/default.png" } = req.body;
 
 
@@ -205,7 +209,7 @@ export const updateFoodByUserId = async (req: Request, res: Response) => {
         return;
     }
 
-    const token = authorizationHeader.split(" ")[1]; 
+    const token = authorizationHeader.split(" ")[1];
 
     try {
         //user info token JWT
@@ -302,7 +306,7 @@ export const updateFoodByUserId = async (req: Request, res: Response) => {
 
 export const deleteOneFoodByUserId = async (req: Request, res: Response) => {
 
-    const foodId = parseInt(req.params.id); 
+    const foodId = parseInt(req.params.id);
 
     const authorizationHeader = req.headers.authorization;
     if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
@@ -310,7 +314,7 @@ export const deleteOneFoodByUserId = async (req: Request, res: Response) => {
         return;
     }
 
-    const token = authorizationHeader.split(" ")[1]; 
+    const token = authorizationHeader.split(" ")[1];
 
     try {
         const decodedToken = JWT.verify(token, process.env.JWT_SECRET_KEY as string) as DecodedToken;

@@ -10,6 +10,11 @@ dotenv.config();
 export const signUp = async (req: Request, res: Response) => {
   let { name, email, password, isAdmin = false } = req.body;
 
+  if (email.length < 5 || password.length < 3) {
+    res.status(500).json({ error: "Could not register, email or password too short." });
+    return;
+  }
+
   if (email.length > 0 && password.length > 0) {
     let hasUser = await prisma.user.findUnique({ where: { email } });
 
@@ -32,7 +37,7 @@ export const signUp = async (req: Request, res: Response) => {
             isAdmin: isAdmin === 1 ? 1 : 0,
           },
         });
-        
+
 
         const token = JWT.sign(
           {

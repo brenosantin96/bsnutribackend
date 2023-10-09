@@ -19,6 +19,11 @@ export const Auth = {
         if (req.headers.authorization) {
             // Pegando o conteúdo do headers.authorization e dividir com o ' ' espaço, criar uma variável para cada.
             const [authType, token] = req.headers.authorization.split(' ');
+
+            console.log("PRIVATE TOKEN: ", token)
+            console.log("req.headers.authorization: ", req.headers.authorization)
+
+
             if (authType === 'Bearer') {
                 try {
                     const decoded = JWT.verify(token, process.env.JWT_SECRET_KEY as string);
