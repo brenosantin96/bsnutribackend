@@ -84,6 +84,8 @@ export const createMealByUserId = async (req: Request, res: Response) => {
   }
 
   if (protein !== undefined && protein !== "" && typeof protein === "string") {
+    console.log("PROTEIN: ", protein)
+    console.log("TYPEOF PROTEIN", typeof (protein))
     protein = replaceCommaWithDot(protein);
   }
 

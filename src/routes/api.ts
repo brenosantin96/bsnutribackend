@@ -11,7 +11,7 @@ import { Auth } from '../middlewares/Auth';
 const router = Router();
 
 router.get('/api/ping', UserController.ping);
-router.get('/api/users', Auth.private, UserController.getUsers);
+router.get('/api/users', UserController.getUsers);
 
 
 router.post('/api/register', LoginAndRegisterController.signUp);
