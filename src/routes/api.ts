@@ -30,6 +30,7 @@ router.delete('/api/foodsByUser/:id', Auth.private, FoodController.deleteOneFood
 
 //mealsByUser
 router.get('/api/mealsByUser', Auth.private, MealController.getMealsByUserId); //ok
+router.get('/api/mealsByUser/:id', Auth.private, MealController.getOneMealByUserId); //ok
 router.post('/api/mealsByUser', Auth.private, MealController.createMealByUserId); //ok
 router.put('/api/mealsByUser/:id', Auth.private, MealController.updateMealByUserId); //ok
 router.delete('/api/mealsByUser/:id', Auth.private, MealController.deleteOneMealByUserId) //ok 

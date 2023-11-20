@@ -333,6 +333,22 @@ export const deleteOneFoodByUserId = async (req: Request, res: Response) => {
             return;
         }
 
+        // Verificar se há refeições associadas a este alimento
+        const mealsWithFood = await prisma.meals_has_foods.findMany({
+            where: { foods_id: foodId }
+        });
+
+        if (mealsWithFood.length > 0) {
+            // O alimento está associado a pelo menos uma refeição
+            res.status(200).json({ error: "Food is associated with meals. Cannot delete." });
+            return;
+        }
+
+        // removing relationships between foods and users in users_has_foods
+        await prisma.users_has_foods.deleteMany({
+            where: { foods_id: foodId },
+        });
+
         // Exclua o alimento
         await prisma.food.delete({
             where: { id: foodId }
