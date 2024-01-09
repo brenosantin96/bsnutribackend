@@ -100,7 +100,11 @@ export const getOneMealByUserId = async (req: Request, res: Response) => {
     const meal = await prisma.meal.findUnique({
       where: { id: mealId },
       include: {
-        meals_has_foods: true
+        meals_has_foods: {
+          include: {
+            foods: true
+          }
+        }
       }
     });
 
@@ -254,8 +258,11 @@ export const updateMealByUserId = async (req: Request, res: Response) => {
 
   console.log("mealID: ", mealId);
 
-  //transforming string array in number array
-  foods_id = foods_id.map((id: string) => parseInt(id));
+  if (Array.isArray(foods_id) && foods_id.every(item => typeof item === 'string')) {
+    //transforming string array in number array
+    foods_id = foods_id.map((id: string) => parseInt(id));
+    console.log("Foods_Id: ", foods_id);
+  }
 
   if (!protein && !calories && !grease && !salt && foods_id.length === 0) {
     res.status(400).json({ msg: "Unable to update, please enter a field to be updated." });

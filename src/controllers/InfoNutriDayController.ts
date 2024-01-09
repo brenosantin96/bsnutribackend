@@ -115,6 +115,7 @@ export const getOneInfoNutriDay = async (req: Request, res: Response) => {
             return;
         }
 
+
         // details about the infoNutriDay to be updated
         const infoNutriDay = await prisma.infonutriday.findUnique({
             where: { id: infoNutriDayId },
@@ -202,7 +203,6 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
     const token = authorizationHeader.split(" ")[1];
 
 
-    console.log("MEALS ID: ", meals_id);
 
 
     try {

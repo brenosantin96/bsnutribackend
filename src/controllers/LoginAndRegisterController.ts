@@ -76,9 +76,6 @@ export const login = async (req: Request, res: Response) => {
       // Remover a senha do objeto user antes de enviar a resposta
       const { password, ...userWithoutPassword } = user;
 
-      console.log("PASSWORD RETORNADA: ", password); //$2b$10$0tPfyKWhCWy1.cNEi8zPRuQGiZhebIjnqPm3CEsycVeuoKytmfp/q
-      console.log("PASSWORD ENVIADA NO CORPO DA REQUISICAO:", passwordReq); //undefined
-      console.log("EMAIL ENVIADO NO CORPO DA REQUISICAO:", email); //undefined
 
       const matchedPasswords = await bcrypt.compare(passwordReq, password);
 

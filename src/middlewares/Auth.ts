@@ -20,8 +20,6 @@ export const Auth = {
             // Pegando o conteúdo do headers.authorization e dividir com o ' ' espaço, criar uma variável para cada.
             const [authType, token] = req.headers.authorization.split(' ');
 
-            console.log("PRIVATE TOKEN: ", token)
-            console.log("req.headers.authorization: ", req.headers.authorization)
 
 
             if (authType === 'Bearer') {
