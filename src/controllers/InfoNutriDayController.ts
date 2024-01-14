@@ -84,6 +84,8 @@ export const getAllInfoNutriDay = async (req: Request, res: Response) => {
 export const getOneInfoNutriDay = async (req: Request, res: Response) => {
 
     const infoNutriDayId = req.params.id;
+    let infoNutriDayIdFirstPartDate = infoNutriDayId.substring(0, 10)
+    console.log(infoNutriDayIdFirstPartDate)
 
     // getting auth Token
     const authorizationHeader = req.headers.authorization;
@@ -105,20 +107,28 @@ export const getOneInfoNutriDay = async (req: Request, res: Response) => {
             include: {
 
                 infonutriday_has_users: {
-                    where: { infonutriday_id: infoNutriDayId }
+                    where: {
+                        infonutriday_id: {
+                            startsWith: infoNutriDayIdFirstPartDate
+                        }
+                    }
                 }
             }
         });
 
         if (!user || user.infonutriday_has_users.length === 0) {
-            res.status(404).json({ error: "InfoNutriDay not found or doesn't belong to the user." });
+            res.status(200).json({ msgError: "InfoNutriDay not found or doesn't belong to the user." });
             return;
         }
 
 
         // details about the infoNutriDay to be updated
-        const infoNutriDay = await prisma.infonutriday.findUnique({
-            where: { id: infoNutriDayId },
+        const infoNutriDay = await prisma.infonutriday.findFirst({
+            where: {
+                id: {
+                    startsWith: infoNutriDayIdFirstPartDate
+                }
+            },
             include: {
                 infonutriday_has_foods: true,
                 infonutriday_has_meals: true,
@@ -126,7 +136,7 @@ export const getOneInfoNutriDay = async (req: Request, res: Response) => {
         });
 
         if (!infoNutriDay) {
-            res.status(404).json({ error: "InfoNutriDay not found." });
+            res.status(200).json({ msgError: "InfoNutriDay does not exists." });
             return;
         }
 
@@ -137,6 +147,8 @@ export const getOneInfoNutriDay = async (req: Request, res: Response) => {
         console.error("Error fetching user's foods:", error);
         res.status(500).json({ error: "Internal server error." });
     }
+
+
 };
 
 
