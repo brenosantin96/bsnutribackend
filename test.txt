@@ -1,0 +1,5 @@
+Itens do InfoNutriDay
+- infoNutriDay_foodmeal_id (chave primária)
+- infoNutriDay_id (chave estrangeira referenciando infoNutriDay)
+- product_id (chave estrangeira referenciando meal ou food)
+- quantidade
