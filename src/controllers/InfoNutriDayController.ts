@@ -8,6 +8,7 @@ import { Meal } from '@prisma/client';
 import { MealWithFoodsArrayNumber } from '../types/Meal';
 import { createArrayOfObjects } from '../utilities/others';
 import { InfoNutriDayType } from '../types/InfoNutriDay';
+import { countRepetitions, removeDuplicatesFromArray } from '../utilities/getIds';
 
 
 interface DecodedToken extends JwtPayload {
@@ -156,7 +157,30 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
 
     let { id, date, portion, protein, calories, grease, salt, finalizedDay, meals_id = null, foods_id = null } = req.body;
 
-    //transforming string array in number array
+    let idFoodsWithManyIds = foods_id;
+    let idMealsWithManyIds = meals_id;
+
+    //idItemX, qtdITEMX
+
+    //criar um for para quantidade de items em idFoodsWithManyIds,
+    //criar um array de objetos com ID e QTDE e para acda objeto rodar a seguinte funcao:
+    //fazer isso com item_food e item_meal
+
+    prisma.infonutriday_item_food.create({
+        data: {
+            id: 12313,
+            infonutriday_id: id,
+            food_id: 1,
+            qtde: 3,
+
+        }
+    })
+
+
+    //receber foods_id com ids repetidos, e meals_id com ids repetidos,
+
+
+    //fazer a contagem dos ids repetidos
 
     if (foods_id !== undefined || foods_id !== null && foods_id.length !== 0) {
         foods_id = foods_id.map((id: string) => parseInt(id));
@@ -166,12 +190,27 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
         meals_id = meals_id.map((id: string) => parseInt(id));
     }
 
-    if (foods_id.some(isNaN)) {
+    if (foods_id.some(isNaN)) { //colocando valor null se nao for enviado foods_id
         foods_id = null
+        idFoodsWithManyIds = null;
     }
 
-    if (meals_id.some(isNaN)) {
+    if (foods_id) {
+        console.log("foods_id antes de remover duplicates: ", foods_id)
+        idFoodsWithManyIds = countRepetitions(foods_id)
+        foods_id = removeDuplicatesFromArray(foods_id)
+        console.log("foods_id depois de remover duplicates: ", foods_id)
+    }
+
+    if (meals_id.some(isNaN)) { //colocando valor null se nao for enviado meals_id
         meals_id = null
+        idMealsWithManyIds = null
+    }
+
+    if (meals_id) {
+        console.log("meals_id antes de remover duplicates: ", meals_id)
+        meals_id = removeDuplicatesFromArray(meals_id);
+        console.log("meals_id dps de remover duplicates: ", meals_id)
     }
 
     if (finalizedDay) {
@@ -233,6 +272,11 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
         //generating unique id
         const timestamp = Date.now();
         const idWithTimeStamp = `${id}+${timestamp}`;
+
+
+        await prisma.$transaction([
+
+        ])
 
         const newInfoNutriDay = await prisma.infonutriday.create({
             data: {
@@ -302,6 +346,7 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
                         },
                     },
                 },
+
 
             },
 

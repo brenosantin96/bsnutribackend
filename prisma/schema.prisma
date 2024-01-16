@@ -31,6 +31,7 @@ model Food {
   image    String?
 
   infonutriday_has_foods infonutriday_has_foods[]
+  infonutriday_item_food infonutriday_item_food[]
   meals_has_foods        meals_has_foods[]
   users_has_foods        users_has_foods[]
 
@@ -49,6 +50,7 @@ model Meal {
   image    String?
 
   infonutriday_has_meals infonutriday_has_meals[]
+  infonutriday_item_meal infonutriday_item_meal[]
   meals_has_foods        meals_has_foods[]
   users_has_meals        users_has_meals[]
 
@@ -56,18 +58,48 @@ model Meal {
 }
 
 model infonutriday {
-  id                     String                   @id @db.VarChar(145)
-  date                   DateTime                 @db.Date
-  portion                Float                    @db.Float
-  protein                Float                    @db.Float
-  calories               Float                    @db.Float
-  grease                 Float                    @db.Float
-  salt                   Float                    @db.Float
-  finalizedDay           Int                      @db.TinyInt
+  id           String   @id @db.VarChar(145)
+  date         DateTime @db.Date
+  portion      Float    @db.Float
+  protein      Float    @db.Float
+  calories     Float    @db.Float
+  grease       Float    @db.Float
+  salt         Float    @db.Float
+  finalizedDay Int      @db.TinyInt
 
   infonutriday_has_meals infonutriday_has_meals[]
   infonutriday_has_foods infonutriday_has_foods[]
   infonutriday_has_users infonutriday_has_users[]
+  infonutriday_item_food infonutriday_item_food[]
+  infonutriday_item_meal infonutriday_item_meal[]
+}
+
+model infonutriday_item_food {
+  id              Int    @id @default(autoincrement())
+  infonutriday_id String @db.VarChar(45)
+  food_id         Int
+  qtde            Int
+
+  food         Food         @relation(fields: [food_id], references: [id])
+  infonutriday infonutriday @relation(fields: [infonutriday_id], references: [id])
+}
+
+model infonutriday_item_meal {
+  id              Int    @id @default(autoincrement())
+  infonutriday_id String @db.VarChar(45)
+  meal_id         Int
+  qtde            Int
+
+  meal         Meal         @relation(fields: [meal_id], references: [id])
+  infonutriday infonutriday @relation(fields: [infonutriday_id], references: [id])
+  
+}
+
+model Product {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  @@map("products")
 }
 
 model infonutriday_has_meals {
@@ -126,6 +158,3 @@ model users_has_meals {
 
   @@id([users_id, meals_id])
 }
-
-
-
