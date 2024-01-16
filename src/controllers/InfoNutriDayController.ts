@@ -1,14 +1,10 @@
 import { Request, Response } from 'express';
 import prisma from '../libs/prismaClient';
-import { v4 as uuidv4 } from 'uuid';
-import { Food } from '../types/Food'
 import { replaceCommaWithDot } from '../utilities/formatter'
 import JWT, { JwtPayload } from 'jsonwebtoken';
-import { Meal } from '@prisma/client';
-import { MealWithFoodsArrayNumber } from '../types/Meal';
-import { createArrayOfObjects } from '../utilities/others';
 import { InfoNutriDayType } from '../types/InfoNutriDay';
-import { countRepetitions, removeDuplicatesFromArray } from '../utilities/getIds';
+import { countRepetitions, removeDuplicatesFromArray, countSameNumbers } from '../utilities/getIds';
+import { KeyAndCount } from '../types/KeyAndCountType';
 
 
 interface DecodedToken extends JwtPayload {
@@ -157,8 +153,8 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
 
     let { id, date, portion, protein, calories, grease, salt, finalizedDay, meals_id = null, foods_id = null } = req.body;
 
-    let idFoodsWithManyIds = foods_id;
-    let idMealsWithManyIds = meals_id;
+    let idFoodsWithManyIds: KeyAndCount[] = [];
+    let idMealsWithManyIds: KeyAndCount[] = [];
 
     //idItemX, qtdITEMX
 
@@ -166,20 +162,18 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
     //criar um array de objetos com ID e QTDE e para acda objeto rodar a seguinte funcao:
     //fazer isso com item_food e item_meal
 
-    prisma.infonutriday_item_food.create({
-        data: {
-            id: 12313,
-            infonutriday_id: id,
-            food_id: 1,
-            qtde: 3,
-
-        }
-    })
+    /*  prisma.infonutriday_item_food.create({
+         data: {
+             id: 12313,
+             infonutriday_id: id,
+             food_id: 1,
+             qtde: 3,
+ 
+         }
+     }) */
 
 
     //receber foods_id com ids repetidos, e meals_id com ids repetidos,
-
-
     //fazer a contagem dos ids repetidos
 
     if (foods_id !== undefined || foods_id !== null && foods_id.length !== 0) {
@@ -192,23 +186,24 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
 
     if (foods_id.some(isNaN)) { //colocando valor null se nao for enviado foods_id
         foods_id = null
-        idFoodsWithManyIds = null;
     }
 
     if (foods_id) {
         console.log("foods_id antes de remover duplicates: ", foods_id)
-        idFoodsWithManyIds = countRepetitions(foods_id)
+        idFoodsWithManyIds = countSameNumbers(foods_id)
+        console.log("idFoodsWithManyIds:", idFoodsWithManyIds)
         foods_id = removeDuplicatesFromArray(foods_id)
         console.log("foods_id depois de remover duplicates: ", foods_id)
     }
 
     if (meals_id.some(isNaN)) { //colocando valor null se nao for enviado meals_id
         meals_id = null
-        idMealsWithManyIds = null
     }
 
     if (meals_id) {
         console.log("meals_id antes de remover duplicates: ", meals_id)
+        idMealsWithManyIds = countSameNumbers(meals_id)
+        console.log("idFoodsWithManyIds", idFoodsWithManyIds)
         meals_id = removeDuplicatesFromArray(meals_id);
         console.log("meals_id dps de remover duplicates: ", meals_id)
     }
@@ -254,8 +249,6 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
     const token = authorizationHeader.split(" ")[1];
 
 
-
-
     try {
         //getting userInfo Token
         const decodedToken = JWT.verify(token, process.env.JWT_SECRET_KEY as string) as DecodedToken;
@@ -274,98 +267,116 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
         const idWithTimeStamp = `${id}+${timestamp}`;
 
 
-        await prisma.$transaction([
 
-        ])
-
-        const newInfoNutriDay = await prisma.infonutriday.create({
-            data: {
-                id: idWithTimeStamp,
-                date,
-                portion,
-                protein: parseFloat(protein),
-                calories: parseFloat(calories),
-                grease: parseFloat(grease),
-                salt: parseFloat(salt),
-                finalizedDay,
+        const newInfoNutriDay = await prisma.$transaction([
+            prisma.infonutriday.create({
+                data: {
+                    id: idWithTimeStamp,
+                    date,
+                    portion,
+                    protein: parseFloat(protein),
+                    calories: parseFloat(calories),
+                    grease: parseFloat(grease),
+                    salt: parseFloat(salt),
+                    finalizedDay,
 
 
-                infonutriday_has_foods: foods_id ? {
-                    create: foods_id.map((foodId: number) => ({
-                        foods: {
-                            connect: {
-                                id: foodId,
+                    infonutriday_has_foods: foods_id ? {
+                        create: foods_id.map((foodId: number) => ({
+                            foods: {
+                                connect: {
+                                    id: foodId,
+                                },
                             },
-                        },
-                    })),
-                } : undefined,
+                        })),
+                    } : undefined,
 
-                infonutriday_has_meals: meals_id ? {
-                    create: meals_id.map((mealId: number) => ({
-                        meals: {
-                            connect: {
-                                id: mealId,
+                    infonutriday_has_meals: meals_id ? {
+                        create: meals_id.map((mealId: number) => ({
+                            meals: {
+                                connect: {
+                                    id: mealId,
+                                },
                             },
-                        },
-                    })),
-                } : undefined,
+                        })),
+                    } : undefined,
 
-
-
-
-                /*  infonutriday_has_meals: meals_id ? {
-                     create: {
-                         meals: {
-                             connect: meals_id.map((mealId: number) => (
-                                 {
-                                     id: mealId,
-                                 }
-                             ))
- 
-                         },
-                     },
-                 } : undefined, */
-
-
-
-                /* infonutriday_has_meals: meals_id ? {
-                    connect: meals_id.map((mealId: number) => (
-                        {
-                            id: mealId
-                        }
-                    ))
-                } : undefined, */
-
-
-                infonutriday_has_users: {
-                    create: {
-                        users: {
-                            connect: {
-                                id: decodedToken.id,
+                    infonutriday_has_users: {
+                        create: {
+                            users: {
+                                connect: {
+                                    id: decodedToken.id,
+                                },
                             },
                         },
                     },
+
+
                 },
 
+                include: {
 
-            },
+                    infonutriday_has_foods: {
+                        include: {
+                            foods: true
+                        }
+                    },
 
-            include: {
+                    infonutriday_has_meals: {
+                        include: {
+                            meals: true
+                        }
+                    },
+                }
 
-                infonutriday_has_foods: {
-                    include: {
-                        foods: true
+            }),
+
+        ])
+
+        if (idFoodsWithManyIds.length > 0) {
+            idFoodsWithManyIds.forEach(async (item) => {
+
+                /* let cuFood = await prisma.infonutriday_item_food.findMany({
+                    where: {
+                        id: id
                     }
-                },
+                }) */
 
-                infonutriday_has_meals: {
-                    include: {
-                        meals: true
+                // console.log("ID FOREING KEY cuFood:", cuFood)
+
+                await prisma.infonutriday_item_food.create({
+                    data: {
+                        infonutriday_id: idWithTimeStamp,
+                        food_id: item.key,
+                        qtde: item.count,
                     }
-                },
-            }
+                })
 
-        });
+            });
+        }
+
+        if (idMealsWithManyIds.length > 0) {
+            idMealsWithManyIds.forEach(async (item) => {
+
+                /*  let cuMeal = await prisma.infonutriday_item_food.findMany({
+                     where: {
+                         id: id
+                     }
+                 }) */
+
+                //console.log("ID FOREING KEY cuMeal:", cuMeal)
+
+                await prisma.infonutriday_item_meal.create({
+                    data: {
+                        infonutriday_id: idWithTimeStamp,
+                        meal_id: item.key,
+                        qtde: item.count,
+                    }
+                })
+
+            });
+        }
+
 
         res.status(200).json({ msg: "InfoNutriDay created with success:", infoNutriDay: newInfoNutriDay });
         return;

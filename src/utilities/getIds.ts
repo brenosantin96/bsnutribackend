@@ -1,30 +1,33 @@
+import { KeyAndCount } from "../types/KeyAndCountType";
+
 export function removeDuplicatesFromArray(arr: number[]): number[] {
     const uniqueNumbersSet = new Set(arr); // Cria um Set com números únicos
     const uniqueNumbersArray = Array.from(uniqueNumbersSet); // Converte o Set de volta para um array
     return uniqueNumbersArray;
 }
 
-type keyAndCount = {
-    key: number;
-    count: number
-}
 
-export const countSameNumbers = (arr: number[]) => {
-
-    let countItems: keyAndCount[] = [];
+export const countSameNumbers = (arr: number[]): KeyAndCount[] => {
+    let countItems: KeyAndCount[] = [];
 
     arr.forEach((numero) => {
+        // Verifica se o número já está no array de countItems
+        const existingItem = countItems.find((item) => item.key === numero);
 
-        if (countItems[numero] === null) {
-            countItems[numero].key = numero;
-            
-
+        if (existingItem) {
+            // Se o número já existe, incrementa o contador (count)
+            existingItem.count++;
+        } else {
+            // Se o número não existe, adiciona um novo item
+            countItems.push({ key: numero, count: 1 });
         }
+    });
 
-    })
-}
+    return countItems;
+};
 
-export function countRepetitions(array: number[]) {
+
+export const countRepetitions = (array: number[]) => {
     // Inicializar um objeto para armazenar a contagem de repetições
     let contagem: Record<string, number> = {};
 
@@ -49,11 +52,6 @@ export function countRepetitions(array: number[]) {
     return resultado;
 }
 
-
-let arrayTeste = [1,1,1,1,2,3,3,3,4,5,6,7,8,8,9,9]
-
-let t = countRepetitions(arrayTeste)
-console.log(t)
 
 //tsc getIds.ts | node getIds.js
 
