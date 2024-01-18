@@ -132,12 +132,39 @@ export const getOneInfoNutriDay = async (req: Request, res: Response) => {
             }
         });
 
+
         if (!infoNutriDay) {
             res.status(200).json({ msgError: "InfoNutriDay does not exists." });
             return;
         }
 
-        res.status(200).json(infoNutriDay);
+
+        const foodsInfoNutriDay = await prisma.infonutriday_item_food.findMany({
+            where: {
+                infonutriday_id: {
+                    startsWith: infoNutriDayIdFirstPartDate
+                }
+            }
+        })
+
+        const mealsInfoNutriDay = await prisma.infonutriday_item_meal.findMany({
+            where: {
+                infonutriday_id: {
+                    startsWith: infoNutriDayIdFirstPartDate
+                }
+            }
+        });
+
+
+        // Combine os objetos em um único objeto
+        const responseObj = {
+            infoNutriDay: infoNutriDay,
+            foodsInfoNutriDay: foodsInfoNutriDay,
+            mealsInfoNutriDay: mealsInfoNutriDay
+        };
+
+
+        res.status(200).json(responseObj);
         return;
 
     } catch (error) {
@@ -156,25 +183,6 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
     let idFoodsWithManyIds: KeyAndCount[] = [];
     let idMealsWithManyIds: KeyAndCount[] = [];
 
-    //idItemX, qtdITEMX
-
-    //criar um for para quantidade de items em idFoodsWithManyIds,
-    //criar um array de objetos com ID e QTDE e para acda objeto rodar a seguinte funcao:
-    //fazer isso com item_food e item_meal
-
-    /*  prisma.infonutriday_item_food.create({
-         data: {
-             id: 12313,
-             infonutriday_id: id,
-             food_id: 1,
-             qtde: 3,
- 
-         }
-     }) */
-
-
-    //receber foods_id com ids repetidos, e meals_id com ids repetidos,
-    //fazer a contagem dos ids repetidos
 
     if (foods_id !== undefined || foods_id !== null && foods_id.length !== 0) {
         foods_id = foods_id.map((id: string) => parseInt(id));
