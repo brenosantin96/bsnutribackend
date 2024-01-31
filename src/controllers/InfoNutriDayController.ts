@@ -344,14 +344,6 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
         if (idFoodsWithManyIds.length > 0) {
             idFoodsWithManyIds.forEach(async (item) => {
 
-                /* let cuFood = await prisma.infonutriday_item_food.findMany({
-                    where: {
-                        id: id
-                    }
-                }) */
-
-                // console.log("ID FOREING KEY cuFood:", cuFood)
-
                 await prisma.infonutriday_item_food.create({
                     data: {
                         infonutriday_id: idWithTimeStamp,
@@ -365,14 +357,6 @@ export const createInfoNutriDay = async (req: Request, res: Response) => {
 
         if (idMealsWithManyIds.length > 0) {
             idMealsWithManyIds.forEach(async (item) => {
-
-                /*  let cuMeal = await prisma.infonutriday_item_food.findMany({
-                     where: {
-                         id: id
-                     }
-                 }) */
-
-                //console.log("ID FOREING KEY cuMeal:", cuMeal)
 
                 await prisma.infonutriday_item_meal.create({
                     data: {
@@ -401,6 +385,10 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
 
     const infoNutriDayId = req.params.id;
 
+    //to control itemsQuantity
+    let idFoodsWithManyIds: KeyAndCount[] = [];
+    let idMealsWithManyIds: KeyAndCount[] = [];
+
     //transforming string array in number array
 
     if (foods_id !== undefined || foods_id !== null && foods_id.length !== 0) {
@@ -416,13 +404,29 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
         foods_id = arraynumber;
     }
 
+    if (foods_id) {
+        console.log("foods_id antes de remover duplicates: ", foods_id)
+        idFoodsWithManyIds = countSameNumbers(foods_id)
+        console.log("idFoodsWithManyIds:", idFoodsWithManyIds)
+        foods_id = removeDuplicatesFromArray(foods_id)
+        console.log("foods_id depois de remover duplicates: ", foods_id)
+    }
+
     if (meals_id.some(isNaN)) {
         let arraynumber: number[] = [];
         meals_id = arraynumber;
     }
 
+    if (meals_id) {
+        console.log("meals_id antes de remover duplicates: ", meals_id)
+        idMealsWithManyIds = countSameNumbers(meals_id)
+        console.log("idFoodsWithManyIds", idFoodsWithManyIds)
+        meals_id = removeDuplicatesFromArray(meals_id);
+        console.log("meals_id dps de remover duplicates: ", meals_id)
+    }
+
     if (finalizedDay) {
-        finalizedDay = "false" ? 0 : 1;
+        finalizedDay = "true" ? 1 : 0;
     }
 
     if (!portion && !protein && !calories && !grease && !salt && foods_id.length === 0 && meals_id.length === 0) {
@@ -444,6 +448,7 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
     try {
         //getting userInfo Token
         const decodedToken = JWT.verify(token, process.env.JWT_SECRET_KEY as string) as DecodedToken;
+        console.log("decodedToken ", decodedToken)
 
         const user = await prisma.user.findUnique({
             where: { id: decodedToken.id },
@@ -473,6 +478,8 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
 
         if (infoNutriDay) {
 
+            console.log("infoNutriDay", infoNutriDay)
+
             const foods = await prisma.infonutriday_has_foods.findMany({
                 where: {
                     infonutriday_id: infoNutriDay.id,
@@ -482,7 +489,14 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
                 },
             });
 
+            const foodsWithQuantity = await prisma.infonutriday_item_food.findMany({
+                where: {
+                    infonutriday_id: infoNutriDay.id
+                }
+            })
 
+            console.log("foodsWithQuantity", foodsWithQuantity)
+            console.log("foods", foods)
 
             const meals = await prisma.infonutriday_has_meals.findMany({
                 where: {
@@ -493,35 +507,57 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
                 },
             });
 
+            const mealsWithQuantity = await prisma.infonutriday_item_meal.findMany({
+                where: {
+                    infonutriday_id: infoNutriDay.id
+                }
+            })
+
+            console.log("meals", mealsWithQuantity)
+
 
             const requestedFoodIds: number[] = foods_id;
+            console.log("requestedFoodIds", requestedFoodIds)
+
+
 
             // Get the food IDs currently associated with the meal
             const currentFoodIds = foods.map((item) => item.foods.id);
+            console.log("currentFoodIds", currentFoodIds)
 
             // Calculate the food IDs to be added and removed
+            //criando um array novo filtrando os foods que NAO estao em currentFoodIds
             const foodIdsToAdd: number[] = requestedFoodIds.filter(
                 (id) => !currentFoodIds.includes(id)
             );
+            console.log("foodIdsToAdd", foodIdsToAdd)
 
             const foodIdsToRemove: number[] = currentFoodIds.filter(
                 (id) => !requestedFoodIds.includes(id)
             );
+            console.log("foodIdsToRemove", foodIdsToRemove)
 
 
             const requestedMealsIds: number[] = meals_id;
+            console.log("requestedMealsIds", requestedMealsIds)
 
             // Get the food IDs currently associated with the meal
             const currentMealsIds = meals.map((item) => item.meals.id);
+            console.log("currentMealsIds", currentMealsIds)
 
             // Calculate the food IDs to be added and removed
             const mealIdsToAdd: number[] = requestedMealsIds.filter(
                 (id) => !currentMealsIds.includes(id)
             );
+            console.log("mealIdsToAdd", mealIdsToAdd)
+
 
             const mealIdsToRemove: number[] = currentMealsIds.filter(
                 (id) => !requestedMealsIds.includes(id)
             );
+            console.log("mealIdsToRemove", mealIdsToRemove)
+
+
 
             let updatedInfoNutriDay: InfoNutriDayType = {
                 id: infoNutriDayId,
@@ -537,12 +573,15 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
 
             }
 
-            if (date !== undefined || date !== "") {
-                updatedInfoNutriDay.date = date;
-            }
+            console.log("updatedInfoNutriDay", updatedInfoNutriDay)
 
-            if (portion === undefined || portion === "") {
-                updatedInfoNutriDay.portion = portion
+            //nao é necessario atualizar a data.
+            // if (date !== undefined || date !== "") {
+            //     updatedInfoNutriDay.date = date;
+            // }
+
+            if (portion !== undefined || portion !== "") {
+                updatedInfoNutriDay.portion = parseFloat(portion)
             }
 
             if (protein !== undefined && protein !== "" && typeof protein === "string") {
@@ -582,6 +621,11 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
                 return;
             }
 
+            console.log("updatedInfoNutriDayAfterUpdate", updatedInfoNutriDay)
+
+            console.log("foodIdsToAdd", foodIdsToAdd)
+
+            //removed all meals and foods
             let savedInfoNutriDay = await prisma.infonutriday.update({
                 where: {
                     id: infoNutriDayId,
@@ -595,29 +639,84 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
                     salt: updatedInfoNutriDay.salt,
                     finalizedDay: updatedInfoNutriDay.finalizedDay,
                     infonutriday_has_foods: {
-                        create: foodIdsToAdd.map((foodId: number) => ({
-                            foods: {
-                                connect: { id: foodId },
-                            },
-                        })),
-
                         deleteMany: foodIdsToRemove.map((foodID) => ({
                             foods_id: foodID,
                         })),
+
                     },
                     infonutriday_has_meals: {
-                        create: mealIdsToAdd.map((mealId: number) => ({
-                            meals: {
-                                connect: { id: mealId },
-                            },
-                        })),
-
                         deleteMany: mealIdsToRemove.map((mealID) => ({
                             meals_id: mealID,
                         })),
                     },
                 }
             });
+
+
+            //adding all meals and foods
+            savedInfoNutriDay = await prisma.infonutriday.update({
+                where: {
+                    id: infoNutriDayId
+                },
+                data: {
+                    infonutriday_has_foods: {
+                        create: foodIdsToAdd.map((foodId: number) => ({
+                            foods: {
+                                connect: { id: foodId },
+                            },
+                        })),
+                    },
+
+                    infonutriday_has_meals: {
+                        create: mealIdsToAdd.map((mealId: number) => ({
+                            meals: {
+                                connect: { id: mealId },
+                            },
+                        })),
+                    }
+                }
+            })
+
+
+            if (idFoodsWithManyIds.length >= 0) {
+                await prisma.infonutriday_item_food.deleteMany({
+                    where: {
+                        infonutriday_id: infoNutriDayId
+                    }
+                })
+
+                idFoodsWithManyIds.forEach(async (item) => {
+                    await prisma.infonutriday_item_food.create({
+                        data: {
+                            infonutriday_id: infoNutriDay.id,
+                            food_id: item.key,
+                            qtde: item.count,
+                        }
+                    })
+
+                });
+            }
+
+            if (idMealsWithManyIds.length >= 0) {
+                await prisma.infonutriday_item_meal.deleteMany(
+                    {
+                        where: {
+                            infonutriday_id: infoNutriDayId
+                        }
+                    }
+                )
+
+                idMealsWithManyIds.forEach(async (item) => {
+                    await prisma.infonutriday_item_meal.create({
+                        data: {
+                            infonutriday_id: infoNutriDay.id,
+                            meal_id: item.key,
+                            qtde: item.count,
+                        }
+                    })
+
+                });
+            }
 
             res.status(200).json({ msg: "InfoNutriDay updated with success:", meal: savedInfoNutriDay });
             return;
@@ -628,6 +727,7 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
         res.status(500).json({ error: "Internal server error." });
     }
 }
+
 
 export const deleteOneInfonutridayByUserId = async (req: Request, res: Response) => {
 
@@ -712,17 +812,17 @@ meals_id[] : 2
 
 Exemplo de requisicao para atualizar em x-www-form-urlencoded
 
-http://localhost:5000/api/infoNutriDay/04-ago-2023+1696266423026
+http://localhost:5000/api/infoNutriDay/04-ene-2024+1706727264609
 
-date: ,
-portion: ,
-protein: 300,
-calories: ,
-grease: ,
-salt: ,
-finalizedDay: ,
-foods_id[] : 1 ,
-meals_id[] : ,
+date: 
+portion: 100,
+protein: 20,
+calories: 
+grease: 
+salt: 
+finalizedDay: true,
+foods_id[] : 4 
+meals_id[] : 2
 
 
 */
