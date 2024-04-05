@@ -80,6 +80,10 @@ export const getAllInfoNutriDay = async (req: Request, res: Response) => {
 
 export const getOneInfoNutriDay = async (req: Request, res: Response) => {
 
+
+    //OLHANDO RAPIDO VEJO QUE AQUI TEM UM BUG.... ELE DEVERIA PEGAR O ID INTEIRO NAO APENAS A PRIMEIRA PARTE.
+    //DESSE MODO VAI FUNCIONAR APENAS PARA UM USUARIO
+
     const infoNutriDayId = req.params.id;
     let infoNutriDayIdFirstPartDate = infoNutriDayId.substring(0, 10)
     console.log(infoNutriDayIdFirstPartDate)
@@ -777,7 +781,17 @@ export const deleteOneInfonutridayByUserId = async (req: Request, res: Response)
             where: { infonutriday_id: infonutridayId },
         });
 
-        // excluding meal
+
+        //removing relationships between infonutriDay and ItemFood / infonutriday and ItemMeal
+        await prisma.infonutriday_item_food.deleteMany({
+            where: { infonutriday_id: infonutridayId },
+        });
+
+        await prisma.infonutriday_item_meal.deleteMany({
+            where: { infonutriday_id: infonutridayId },
+        });
+
+        // excluding infoNutriDay
         await prisma.infonutriday.delete({
             where: { id: infonutridayId },
         });
