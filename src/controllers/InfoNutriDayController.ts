@@ -27,6 +27,55 @@ interface DecodedToken extends JwtPayload {
   
   */
 
+export const getAllInfoNutriDay2 = async (req: Request, res: Response) => {
+
+    // getting authToken
+    const authorizationHeader = req.headers.authorization;
+    if (!authorizationHeader || !authorizationHeader.startsWith("Bearer ")) {
+        res.status(401).json({ error: "Unauthorized." });
+        return;
+    }
+
+    //taking away the word Bearer
+    const token = authorizationHeader.split(" ")[1];
+
+    try {
+        //getting user info
+        const decodedToken = JWT.verify(token, process.env.JWT_SECRET_KEY as string) as DecodedToken;
+
+
+        const infoNutriDay = await prisma.infonutriday.findMany({
+            where: {
+                infonutriday_has_users: {
+                    every: {
+                        users_id: decodedToken.id
+                    }
+                }
+            },
+
+            orderBy: {
+                date: 'desc'
+            }
+
+        })
+
+
+
+        if (!infoNutriDay) {
+            res.status(404).json({ error: "User not found." });
+            return;
+        }
+
+        console.log(infoNutriDay);
+        res.status(200).json(infoNutriDay);
+        return;
+
+    } catch (error) {
+        console.error("Error fetching user's infoNutriDay:", error);
+        res.status(500).json({ error: "Internal server error." });
+    }
+};
+
 export const getAllInfoNutriDay = async (req: Request, res: Response) => {
 
     // getting authToken
@@ -66,8 +115,6 @@ export const getAllInfoNutriDay = async (req: Request, res: Response) => {
             return;
         }
 
-        //map criando array de meals do usuario
-        //const userInfoNutriDay = user.map((item) => item.);
         console.log(user);
         res.status(200).json(user);
         return;
@@ -387,7 +434,10 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
 
     let { id, date, portion, protein, calories, grease, salt, finalizedDay, meals_id = null, foods_id = null } = req.body;
 
+    //CORRIGIR ISSO.... ESTA PEGANDO O ID INCORRETO.
     const infoNutriDayId = req.params.id;
+
+    console.log("ID SENDO PEGO", infoNutriDayId)
 
     //to control itemsQuantity
     let idFoodsWithManyIds: KeyAndCount[] = [];
@@ -469,7 +519,7 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
 
         //getting infoNutriDay to update
         const infoNutriDay = await prisma.infonutriday.findUnique({
-            where: { id: infoNutriDayId },
+            where: { id: id },
             include: {
                 infonutriday_has_users: true,
             },
@@ -564,7 +614,7 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
 
 
             let updatedInfoNutriDay: InfoNutriDayType = {
-                id: infoNutriDayId,
+                id: id,
                 date: infoNutriDay.date,
                 portion: infoNutriDay.portion,
                 protein: infoNutriDay.protein,
@@ -588,23 +638,39 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
                 updatedInfoNutriDay.portion = parseFloat(portion)
             }
 
-            if (protein !== undefined && protein !== "" && typeof protein === "string") {
-                protein = replaceCommaWithDot(protein);
+            if (protein !== undefined && protein !== "") {
+
+                if (typeof protein === "string") {
+                    protein = replaceCommaWithDot(protein);
+                }
+
                 updatedInfoNutriDay.protein = parseFloat(protein);
             }
 
-            if (calories !== undefined && calories !== "" && typeof protein === "string") {
-                calories = replaceCommaWithDot(calories);
+            if (calories !== undefined && calories !== "") {
+
+                if (typeof calories === "string") {
+                    calories = replaceCommaWithDot(calories);
+                }
+
                 updatedInfoNutriDay.calories = parseFloat(calories);
             }
 
-            if (grease !== undefined && grease !== "" && typeof protein === "string") {
-                grease = replaceCommaWithDot(grease);
+            if (grease !== undefined && grease !== "") {
+
+                if (typeof grease === "string") {
+                    grease = replaceCommaWithDot(grease);
+                }
+
                 updatedInfoNutriDay.grease = parseFloat(grease);
             }
 
-            if (salt !== undefined && salt !== "" && typeof protein === "string") {
-                salt = replaceCommaWithDot(salt);
+            if (salt !== undefined && salt !== "") {
+
+                if (typeof salt === "string") {
+                    salt = replaceCommaWithDot(salt);
+                }
+
                 updatedInfoNutriDay.salt = parseFloat(salt);
             }
 
@@ -632,7 +698,7 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
             //removed all meals and foods
             let savedInfoNutriDay = await prisma.infonutriday.update({
                 where: {
-                    id: infoNutriDayId,
+                    id: id,
                 },
                 data: {
                     date: date !== null && date !== undefined && date !== "" ? new Date(updatedInfoNutriDay.date.toString()) : infoNutriDay.date,
@@ -660,7 +726,7 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
             //adding all meals and foods
             savedInfoNutriDay = await prisma.infonutriday.update({
                 where: {
-                    id: infoNutriDayId
+                    id: id
                 },
                 data: {
                     infonutriday_has_foods: {
@@ -685,7 +751,7 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
             if (idFoodsWithManyIds.length >= 0) {
                 await prisma.infonutriday_item_food.deleteMany({
                     where: {
-                        infonutriday_id: infoNutriDayId
+                        infonutriday_id: id
                     }
                 })
 
@@ -705,7 +771,7 @@ export const updateInfoNutriDay = async (req: Request, res: Response) => {
                 await prisma.infonutriday_item_meal.deleteMany(
                     {
                         where: {
-                            infonutriday_id: infoNutriDayId
+                            infonutriday_id: id
                         }
                     }
                 )
