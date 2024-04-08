@@ -256,27 +256,43 @@ export const updateFoodByUserId = async (req: Request, res: Response) => {
 
             if (portion) updatedFood.portion = parseInt(portion);
 
-            if (protein) {
-                protein = replaceCommaWithDot(protein);
+            if (protein !== undefined) {
+
+                if(typeof(protein) === "string"){
+                    protein = replaceCommaWithDot(protein);
+                }
+
                 updatedFood.protein = parseFloat(protein);
             }
 
-            if (calories) {
-                calories = replaceCommaWithDot(calories);
+            if (calories !== undefined) {
+                
+                if(typeof(calories) === "string"){
+                    calories = replaceCommaWithDot(calories);
+                }
+
                 updatedFood.calories = parseFloat(calories);
             }
 
-            if (grease) {
-                grease = replaceCommaWithDot(grease);
+            if (grease !== undefined) {
+                
+                if(typeof(grease) === "string"){
+                    grease = replaceCommaWithDot(grease);
+                }
+
                 updatedFood.grease = parseFloat(grease);
             }
 
-            if (salt) {
-                salt = replaceCommaWithDot(salt);
+            if (salt !== undefined) {
+
+                if(typeof(salt) === "string"){
+                    salt = replaceCommaWithDot(salt);
+                }
+
                 updatedFood.salt = parseFloat(salt);
             }
 
-            if (image) updatedFood.image = image;
+            if (image !== undefined) updatedFood.image = image;
 
             let savedFood = await prisma.food.update({
                 where: {
