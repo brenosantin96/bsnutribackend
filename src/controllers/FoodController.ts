@@ -120,22 +120,25 @@ export const createFoodsByUserId = async (req: Request, res: Response) => {
         image = "/default.png";
     }
 
-    if (protein !== undefined || protein !== "" && typeof protein === "string") {
+    if (protein !== undefined || protein !== "" || protein !== null && typeof protein === "string") {
+        console.log("Entrou!")
+        console.log("PROTEIN TYPEOF:", typeof(protein))
+        console.log("PROTEIN:", protein)
         protein.toString();
         protein = replaceCommaWithDot(protein);
     }
 
-    if (calories !== undefined || calories !== "" && typeof protein === "string") {
+    if (calories !== undefined || calories !== "" || calories !== null && typeof calories === "string") {
         calories.toString();
         calories = replaceCommaWithDot(calories);
     }
 
-    if (grease !== undefined || grease !== "" && typeof protein === "string") {
+    if (grease !== undefined || grease !== "" || grease !== null && typeof grease === "string") {
         grease.toString();
         grease = replaceCommaWithDot(grease);
     }
 
-    if (salt !== undefined || salt !== "" && typeof protein === "string") {
+    if (salt !== undefined || salt !== "" || salt !== null && typeof salt === "string") {
         salt.toString();
         salt = replaceCommaWithDot(salt);
     }
