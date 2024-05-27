@@ -116,29 +116,33 @@ export const createFoodsByUserId = async (req: Request, res: Response) => {
     let { name, portion, protein, calories, grease, salt, image = "/default.png" } = req.body;
 
 
+    if (!name || !portion || !protein || !calories || !grease || !salt){
+        res.status(400).json({error: "Information provided doenst fullfill request."})
+        return;
+    }
+
     if (image === undefined || image === "") {
         image = "/default.png";
     }
 
-    if (protein !== undefined || protein !== "" || protein !== null && typeof protein === "string") {
-        console.log("Entrou!")
-        console.log("PROTEIN TYPEOF:", typeof(protein))
-        console.log("PROTEIN:", protein)
+    if (protein !== undefined && protein !== "" && protein !== null && typeof protein === "string") {
+        console.log("Entrou en Protein!")
         protein.toString();
         protein = replaceCommaWithDot(protein);
     }
 
-    if (calories !== undefined || calories !== "" || calories !== null && typeof calories === "string") {
+    if (calories !== undefined && calories !== "" && calories !== null && typeof calories === "string") {
+        console.log("Entrou en Calories!")
         calories.toString();
         calories = replaceCommaWithDot(calories);
     }
 
-    if (grease !== undefined || grease !== "" || grease !== null && typeof grease === "string") {
+    if (grease !== undefined && grease !== "" && grease !== null && typeof grease === "string") {
         grease.toString();
         grease = replaceCommaWithDot(grease);
     }
 
-    if (salt !== undefined || salt !== "" || salt !== null && typeof salt === "string") {
+    if (salt !== undefined && salt !== "" && salt !== null && typeof salt === "string") {
         salt.toString();
         salt = replaceCommaWithDot(salt);
     }
