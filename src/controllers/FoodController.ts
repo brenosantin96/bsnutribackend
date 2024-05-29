@@ -116,8 +116,8 @@ export const createFoodsByUserId = async (req: Request, res: Response) => {
     let { name, portion, protein, calories, grease, salt, image = "/default.png" } = req.body;
 
 
-    if (!name || !portion || !protein || !calories || !grease || !salt){
-        res.status(400).json({error: "Information provided doenst fullfill request."})
+    if (!name || !portion || !protein || !calories || !grease || !salt) {
+        res.status(400).json({ error: "Information provided doenst fullfill request." })
         return;
     }
 
@@ -265,7 +265,7 @@ export const updateFoodByUserId = async (req: Request, res: Response) => {
 
             if (protein !== undefined) {
 
-                if(typeof(protein) === "string"){
+                if (typeof (protein) === "string") {
                     protein = replaceCommaWithDot(protein);
                 }
 
@@ -273,8 +273,8 @@ export const updateFoodByUserId = async (req: Request, res: Response) => {
             }
 
             if (calories !== undefined) {
-                
-                if(typeof(calories) === "string"){
+
+                if (typeof (calories) === "string") {
                     calories = replaceCommaWithDot(calories);
                 }
 
@@ -282,8 +282,8 @@ export const updateFoodByUserId = async (req: Request, res: Response) => {
             }
 
             if (grease !== undefined) {
-                
-                if(typeof(grease) === "string"){
+
+                if (typeof (grease) === "string") {
                     grease = replaceCommaWithDot(grease);
                 }
 
@@ -292,7 +292,7 @@ export const updateFoodByUserId = async (req: Request, res: Response) => {
 
             if (salt !== undefined) {
 
-                if(typeof(salt) === "string"){
+                if (typeof (salt) === "string") {
                     salt = replaceCommaWithDot(salt);
                 }
 
@@ -316,6 +316,55 @@ export const updateFoodByUserId = async (req: Request, res: Response) => {
                 }
 
             })
+
+
+            //updating all meals that have this food.
+            //getting all meals that have this food.
+            const meals = await prisma.meals_has_foods.findMany({
+                where: { foods_id: foodId },
+                include: { foods: true }
+            });
+
+            //para cada food presente em todas refeicoes executar o for
+            for (const mealFood of meals) {
+                console.log("mealFood: ",mealFood)
+                const mealId = mealFood.meals_id; //pegar o id para saber qual meal vai ser recalculado
+
+                //pegar todos meals que possuem esses food
+                const mealFoods = await prisma.meals_has_foods.findMany({
+                    where: { meals_id: mealId },
+                    include: { foods: true },
+                });
+
+                // Recalcule os valores agregados
+                let totalProtein = 0;
+                let totalCalories = 0;
+                let totalGrease = 0;
+                let totalSalt = 0;
+
+                for (const mf of mealFoods) {
+                    console.log("MF1 :", mf)
+                    totalProtein += mf.foods.protein;
+                    totalCalories += mf.foods.calories;
+                    totalGrease += mf.foods.grease;
+                    totalSalt += mf.foods.salt;
+                    console.log("MF2 :", mf)
+                }
+
+                // Atualize o Meal com os novos valores agregados
+                await prisma.meal.update({
+                    where: { id: mealId },
+                    data: {
+                        protein: totalProtein,
+                        calories: totalCalories,
+                        grease: totalGrease,
+                        salt: totalSalt,
+                    },
+                });
+            }
+
+
+
             res.status(200).json({ msg: "Food updated with success:", food: savedFood });
             return
 

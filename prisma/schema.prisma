@@ -134,9 +134,10 @@ model infonutriday_has_users {
 
 model meals_has_foods {
   meals_id Int
-  meals    Meal @relation(fields: [meals_id], references: [id])
+  meals    Meal @relation(fields: [meals_id], references: [id], onUpdate: Cascade)
   foods_id Int
-  foods    Food @relation(fields: [foods_id], references: [id])
+  foods    Food @relation(fields: [foods_id], references: [id], onUpdate: Cascade)
+  
 
   @@id([meals_id, foods_id])
 }
