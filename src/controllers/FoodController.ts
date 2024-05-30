@@ -327,7 +327,7 @@ export const updateFoodByUserId = async (req: Request, res: Response) => {
 
             //para cada food presente em todas refeicoes executar o for
             for (const mealFood of meals) {
-                console.log("mealFood: ",mealFood)
+                console.log("mealFood: ", mealFood)
                 const mealId = mealFood.meals_id; //pegar o id para saber qual meal vai ser recalculado
 
                 //pegar todos meals que possuem esses food
@@ -362,6 +362,57 @@ export const updateFoodByUserId = async (req: Request, res: Response) => {
                     },
                 });
             }
+
+            //getting all infonutriday that have this food
+            const infonutridays = await prisma.infonutriday_has_foods.findMany({
+                where: { foods_id: foodId },
+                include: { foods: true }
+            });
+
+
+            for (const infoNutriDayFood of infonutridays) {
+                console.log("infoNutriDayFood: ", infoNutriDayFood)
+                console.log("infoNutriDayFoodType: ", typeof (infoNutriDayFood))
+
+                const infoNutriDayId = infoNutriDayFood.infonutriday_id; //pegar o id para saber qual meal vai ser recalculado
+
+                //pegar todos meals que possuem esses food
+                const infoNutriDaysThatHaveThisFood = await prisma.infonutriday_has_foods.findMany({
+                    where: { infonutriday_id: infoNutriDayId },
+                    include: { foods: true },
+                });
+
+                // Recalcule os valores agregados
+                let totalPortion = 0;
+                let totalProtein = 0;
+                let totalCalories = 0;
+                let totalGrease = 0;
+                let totalSalt = 0;
+
+
+                for (const infodayFood of infoNutriDaysThatHaveThisFood) {
+                    //para cada infodayFood que possuem esse food, vamos criar uma variavel, essa variavel vai ter o valor atual
+                    totalPortion += infodayFood.foods.portion;
+                    totalProtein += infodayFood.foods.protein
+                    totalCalories += infodayFood.foods.calories
+                    totalGrease += infodayFood.foods.grease
+                    totalSalt += infodayFood.foods.salt
+                }
+
+                // Atualize o InfoNutriDay com os novos valores agregados
+                await prisma.infonutriday.update({
+                    where: { id: infoNutriDayId },
+                    data: {
+                        portion: totalPortion,
+                        protein: totalProtein,
+                        calories: totalCalories,
+                        grease: totalGrease,
+                        salt: totalSalt,
+                    }
+                });
+
+            }
+
 
 
 

@@ -403,6 +403,7 @@ export const updateMealByUserId = async (req: Request, res: Response) => {
         },
       });
 
+
       res.status(200).json({ msg: "Meal updated with success:", meal: savedMeal });
       return;
     }
