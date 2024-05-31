@@ -348,6 +348,8 @@ export const updateMealByUserId = async (req: Request, res: Response) => {
         updatedMeal.image = "/default.png";
       }
 
+
+      //se os 04 ifs abaixo forem do type string..... 
       if (protein !== undefined && protein !== "" && typeof protein === "string") {
         protein = replaceCommaWithDot(protein);
         updatedMeal.protein = parseFloat(protein);
@@ -367,6 +369,25 @@ export const updateMealByUserId = async (req: Request, res: Response) => {
         salt = replaceCommaWithDot(salt);
         updatedMeal.salt = parseFloat(salt);
       }
+
+      //se os 04 ifs abaixo forem do type number..... 
+      if (protein && protein !== "") {
+        updatedMeal.protein = parseFloat(protein);
+      }
+
+      if (calories && calories !== "") {
+        updatedMeal.calories = parseFloat(calories);
+      }
+
+      if (grease && grease !== "") {
+        updatedMeal.grease = parseFloat(grease);
+      }
+
+      if (salt && salt !== "") {
+        updatedMeal.salt = parseFloat(salt);
+      }
+      //fim 04 ifs
+
 
       if (foods_id !== undefined && foods_id.length !== 0) {
         updatedMeal.foods = foods_id;
@@ -448,6 +469,17 @@ export const deleteOneMealByUserId = async (req: Request, res: Response) => {
       res
         .status(404)
         .json({ error: "Meal not found or doesn't belong to the user." });
+      return;
+    }
+
+    const infoNutriDaysWithThisFood = await prisma.infonutriday_has_meals.findMany({
+      where: {
+        meals_id: mealId
+      }
+    });
+
+    if (infoNutriDaysWithThisFood.length > 0) {
+      res.status(400).json({ error: "Not allowed to remove a meal that belongs to a Infonutri Day" });
       return;
     }
 

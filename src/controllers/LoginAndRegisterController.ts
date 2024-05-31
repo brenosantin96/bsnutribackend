@@ -20,7 +20,7 @@ export const signUp = async (req: Request, res: Response) => {
 
     if (hasUser) {
       res
-        .status(500)
+        .status(400)
         .json({ error: "Could not register, email already exists." });
       return;
     }
